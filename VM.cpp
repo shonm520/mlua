@@ -203,6 +203,7 @@ void VM::enterClosure()
 
 void VM::quitClosure()
 {
+	getCurrentClosure()->clearTables();
 	_stackClosure->popValue();
 }
 

@@ -187,3 +187,16 @@ bool Table::ArrayHasKey(const Value *key) const
 	return true;
 }
 
+
+Table* Table::clone()
+{
+	if (_hash_table)  {
+		Table* other = new Table();
+		for (auto it = _hash_table->begin(); it != _hash_table->end(); ++it)  {
+			other->Assign(it->first, it->second);
+		}
+		return other;
+	}
+	return nullptr;
+}
+

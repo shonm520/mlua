@@ -44,13 +44,14 @@ public:
 	virtual std::size_t GetHash() const  { return _prototype->GetHash(); }
 	virtual bool IsEqual(const Value *other) const  { return this == other; }
 
-	void setParentClosure(Closure* c) { _parentClosure = c; }
+	void setParentClosure(Closure* c);
 	Closure* getParentClosure()  { return _parentClosure; }
 
 	Table* getTopTable();
 	int findInNestTables(Value* key, Value** val);
 	int findUpTables(Value* key, Value** val, Table** table);
 	void initTables();
+	void clearTables();
 private:
 	
 	State* _state;
@@ -59,6 +60,7 @@ private:
 
 	typedef std::vector<Table *> NestTables;
 	NestTables _nest_tables;
+	Table* _upTables;
 };
 
 

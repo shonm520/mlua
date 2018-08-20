@@ -161,6 +161,9 @@ public:
 	void Assign(const Value *key, Value *value);
 	void Assign(const Value *key, TableValue *table_value);
 
+	Table* clone();
+
+
 private:
 	typedef std::vector<TableValue *> ArrayType;
 	typedef std::unordered_map<const Value *, TableValue *, ValueHasher, ValueEqualer> HashTableType;

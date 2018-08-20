@@ -106,7 +106,6 @@ void CodeGenerateVisitor::generateFuncCode(bool bGlobal, SyntaxTreeNodeBase* nam
 
 	if (params)  {
 		generate_nodelist_code(params, &f_writer, ExpVarData::VAR_SET);
-		//params->accept(this, &f_writer);
 		ins = f_writer.newInstruction();
 		ins->op_code = Instruction::OpCode_InitLocalVar;
 		ins->param_a.param.counter.counter1 = params->getSiblings();

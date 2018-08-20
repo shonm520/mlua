@@ -30,22 +30,43 @@ Closure* Function::generateClosure(State* s)
 Closure::Closure(State* s)
 	:_state(s),
 	_prototype(nullptr),
-	_parentClosure(nullptr)
+	_parentClosure(nullptr),
+	_upTables(nullptr)
 {
 
 }
 
 void Closure::initTables()
 {
-	_nest_tables.clear();
+	clearTables();
 	_nest_tables.push_back(new Table());
+}
+
+void Closure::clearTables()
+{
+	_nest_tables.clear();
 }
 
 Table* Closure::getTopTable()
 {
+	if (_nest_tables.size() == 0)  {
+		return nullptr;
+	}
 	Table* top = _nest_tables.back();
 	return top;
 }
+
+void Closure::setParentClosure(Closure* c)
+{
+	_parentClosure = c;
+	if (c)  {
+		Table* topTab = c->getTopTable();       //只需拷贝最外层的局部变量,for循环里面的局部变量，子函数是不可见的
+		if (topTab)  {
+			_upTables = topTab->clone();
+		}
+	}
+}
+
 
 int Closure::findInNestTables(Value* key, Value** val)
 {
@@ -71,9 +92,18 @@ int Closure::findUpTables(Value* key, Value** val, Table** tab)
 		int ret = cl->findInNestTables(key, val);
 		if (ret != -1)  {  //在当前闭包中找到
 			if (tab) *tab = cl->getTopTable();
-			return 0;
+			return 1;
 		}
 		cl = cl->_parentClosure;
+	}
+
+	if (_upTables)  {      //在其上值中找
+		Value* temp = _upTables->GetValue(key);
+		if (temp) { 
+			if (val) *val = temp;
+			if (tab) *tab = _upTables;
+			return 2;
+		}
 	}
 
 	Table* table = getState()->getGlobalTable();  //已到了最顶层
