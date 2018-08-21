@@ -259,17 +259,7 @@ public:
 
 
 
-class IFunction  {
-public:
-	IFunction() : _func(new Function()) {}
-	virtual Function* getFunction() { return _func; };
-private:
-	Function* _func;
-};
-
-
-
-class ChunkNode : public SyntaxTreeNodeBase, public IFunction  {
+class ChunkNode : public SyntaxTreeNodeBase {
 public:
 	ChunkNode() : SyntaxTreeNodeBase()  {
 		_nodeKind = CHUNK_K;
@@ -279,7 +269,7 @@ public:
 };
 
 
-class BlockNode : public SyntaxTreeNodeBase  {
+class BlockNode : public SyntaxTreeNodeBase {
 public:
 	BlockNode() : SyntaxTreeNodeBase()  {
 		_nodeKind = BLOCK_K;
@@ -332,6 +322,15 @@ public:
 			if (_type == TERM_NUMBER)  {
 				double num = strtod(_token.lexeme.c_str(), 0);
 				_val = new Number(num);
+			}
+			else  if (_type == TERM_TRUE){
+				_val = new BoolValue(true);
+			}
+			else  if (_type == TERM_FALSE){
+				_val = new BoolValue(false);
+			}
+			else  if (_type == TERM_NIL){
+				_val = new Nil();
 			}
 		}
 		return _val;
@@ -517,7 +516,7 @@ public:
 };
 
 
-class FunctionStatement : public SyntaxTreeNodeBase, public IFunction  {
+class FunctionStatement : public SyntaxTreeNodeBase  {
 public:
 	FunctionStatement() : SyntaxTreeNodeBase()  {
 		_nodeKind = FUNCTION_STM_K;
@@ -538,13 +537,10 @@ public:
 	SyntaxTreeNodeBase* getFuncRet() { return _child[EFunRet]; }
 
 	void setGlobal(bool b) { _bGlobal = b; }
-	void setAnony(bool b)  { _bAnony = b; }
 	bool getGlobal(){ return _bGlobal; }
-	bool getAnony() { return _bAnony; }
 
 private:
 	bool _bGlobal;
-	bool _bAnony;
 };
 
 
@@ -557,6 +553,38 @@ public:
 
 	virtual void accept(Visitor* visitor, void* data);
 };
+
+
+
+class IfStatement : public SyntaxTreeNodeBase  {
+public:
+	IfStatement() : SyntaxTreeNodeBase()  {
+		_nodeKind = IF_STATEMENT_K;
+	}
+	enum eIfStmt  {
+		ECompare,
+		EIf,
+		EElseOrEnd
+	};
+
+	virtual void accept(Visitor* visitor, void* data);
+};
+
+class CompareStatement : public SyntaxTreeNodeBase  {
+public:
+	CompareStatement() : SyntaxTreeNodeBase()  {
+		_nodeKind = COMPARE_K;
+	}
+	enum eCmp  {
+		ECmpLef,
+		ECmpRight
+	};
+
+	virtual void accept(Visitor* visitor, void* data);
+};
+
+
+
 
 class CompondStatement : public SyntaxTreeNodeBase  {    
 public:

@@ -7,7 +7,31 @@
 class State;
 class Closure;
 class Stack;
-class Function : public Value
+
+
+class InstructionValue : public Value
+{
+public:
+	InstructionValue();
+
+	virtual std::string Name() const { return "instruction_val"; }
+	virtual int Type() const { return TYPE_INSTRUCTVAL; }
+	virtual std::size_t GetHash() const  { return std::hash<const InstructionValue *>()(this); }
+	virtual bool IsEqual(const Value *other) const  { return this == other; }
+
+
+public:
+	InstructionSet* getInstructionSet() { return _insSet; }
+	void setInstructionSet(InstructionSet* s){ _insSet = s; }
+private:
+	InstructionSet* _insSet;
+
+};
+
+
+
+
+class Function : public InstructionValue
 {
 public:
 	Function();
@@ -17,8 +41,6 @@ private:
 	int _retNum;     //返回值的数量
 
 public:
-	std::vector<Instruction*> _opcodes;
-
 	virtual std::string Name() const { return "function"; }
 	virtual int Type() const { return TYPE_FUNCTION; }
 	virtual std::size_t GetHash() const  {  return std::hash<const Function *>()(this);}
@@ -50,8 +72,11 @@ public:
 	Table* getTopTable();
 	int findInNestTables(Value* key, Value** val);
 	int findUpTables(Value* key, Value** val, Table** table);
-	void initTables();
-	void clearTables();
+	void initClosure();
+	void clearClosure();
+
+	void addBlockTable();
+	void removeBlockTable();
 private:
 	
 	State* _state;
@@ -81,3 +106,13 @@ private:
 	Fun _func;
 
 };
+
+
+/*class BlockCode : public Value  {
+public:
+	std::vector<Instruction*> _opcodes;
+	virtual std::string Name() const { return "block_code"; }
+	virtual int Type() const { return TYPE_FUNCTION; }
+	virtual std::size_t GetHash() const  { return std::hash<const BlockCode *>()(this); }
+	virtual bool IsEqual(const Value *other) const  { return this == other; }
+};*/

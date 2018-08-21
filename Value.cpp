@@ -39,6 +39,13 @@ bool Nil::IsEqual(const Value *other) const
 }
 
 
+bool BoolValue::IsEqual(const Value *other) const
+{
+	if (this == other)
+		return true;
+	return Type() == other->Type();
+}
+
 
 
 

@@ -37,6 +37,7 @@ struct Value
 		TYPE_FUNCTION,
 		TYPE_CLOSURE,
 		TYPE_NATIVE_FUNCTION,
+		TYPE_INSTRUCTVAL
 	};
 
 	virtual int Type() const = 0;
@@ -56,8 +57,6 @@ struct Value
 			return left->IsEqual(right);
 		}
 	};
-
-	ValueT type_;
 };
 
 
@@ -70,6 +69,25 @@ public:
 	virtual bool IsEqual(const Value *other) const;
 	virtual std::size_t GetHash() const { return 0; }
 };
+
+
+class BoolValue : public Value
+{
+public:
+	BoolValue() : _valLogic(false){}
+	BoolValue(bool b) : _valLogic(b){}
+	virtual std::string Name() const { return "bool"; }
+	virtual int Type() const { return TYPE_BOOL; }
+	virtual bool IsEqual(const Value *other) const;
+	virtual std::size_t GetHash() const { return 0; }
+
+	void setLogicVal(bool b)  { _valLogic = b; }
+	bool getLogicVal()  { return _valLogic; }
+
+private:
+	bool _valLogic;
+};
+
 
 
 
@@ -122,18 +140,11 @@ class TableValue : public Value
 public:
 	explicit TableValue(Value *value) : _value(value){}
 
-
 	virtual int Type() const { return _value->Type(); }
 	virtual bool IsEqual(const Value *other) const { return _value->IsEqual(other); };
 	virtual std::string Name() const { return _value->Name(); }
 
 	virtual std::size_t GetHash() const  { return _value->GetHash(); }
-
-// 	virtual bool IsEqual(const Value *other) const
-// 	{
-// 		return value_->IsEqual(other);
-// 	}
-
 	Value * GetValue()  { return _value; }
 	void SetValue(Value *value)  { _value = value; }
 

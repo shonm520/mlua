@@ -107,7 +107,7 @@ string Scanner::detailType2Lexeme(TokenType_Detail detail)
 	case Scanner::Token_Else:
 		lexeme = "else";
 		break;
-	case Scanner::Token_Elseif:
+	case Scanner::Token_ElseIf:
 		lexeme = "elseif";
 		break;
 	case Scanner::Token_End:

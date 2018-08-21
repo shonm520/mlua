@@ -136,7 +136,9 @@ Parser::TreeNode *Parser::parse_block()
 			break;
 		}
 		TreeNode* node = parse_statements();
-		if (!node || node->getToken().compare(Scanner::Token_End))  {
+		if (!node) break;
+		if (node->getToken().compare(Scanner::Token_End))  {
+			eatExpectedToken(Token(Scanner::Token_End));
 			break;
 		}
 		else if (node->getNodeKind() == SyntaxTreeNodeBase::RETURN_STATEMENT_K)  {
@@ -479,9 +481,6 @@ Parser::TreeNode *Parser::parse_statements()    //½âÎöÒ»¸ö¿éÀïµÄËùÓÐÓï¾ä,°üÀ¨ÉùÃ
 	else if (token.compare(Scanner::Token_Function))  {
 		return parse_function_statement(false);
 	}
-	else if (token.compare(Scanner::Token_End))  {
-		return new SyntaxTreeNodeBase(token);
-	}
 	else if (token.compare(Scanner::Token_If))  {
 		return parse_if_statement();
 	}
@@ -490,6 +489,14 @@ Parser::TreeNode *Parser::parse_statements()    //½âÎöÒ»¸ö¿éÀïµÄËùÓÐÓï¾ä,°üÀ¨ÉùÃ
 		return rt_smt;
 	}
 	else  {
+		if (token.compare(Scanner::Token_End))  {            //¿é½áÊø
+			eatExpectedToken(Token(Scanner::Token_End));
+			return nullptr;
+		}
+		else if (token.compare(Scanner::Token_Else) ||       //ifµÄÒ»¸ö·ÖÖ§½áÊø
+				 token.compare(Scanner::Token_ElseIf))  {
+			return nullptr;
+		}
 		if (token.kind != Scanner::ID)  {
 			syntaxError(_strCurParserFileName, "a Identifier", token);
 			return nullptr;
@@ -562,14 +569,13 @@ Parser::TreeNode *Parser::parse_function_statement(bool anony, bool global)
 	}
 	eatExpectedToken(Token(Scanner::Token_RightRoundBracket));
 	SyntaxTreeNodeBase* fct_body = parse_block();
-	eatExpectedToken(Token(Scanner::Token_End));
+	//eatExpectedToken(Token(Scanner::Token_End));
 
 	FunctionStatement* fct_stm = new FunctionStatement();
 	fct_stm->addChild(fct_name, FunctionStatement::EFuncName);
 	fct_stm->addChild(param_list, FunctionStatement::EFuncParams);
 	fct_stm->addChild(fct_body, FunctionStatement::EFuncBody);
 	fct_stm->setGlobal(global);
-	fct_stm->setAnony(anony);
 	return fct_stm;
 }
 
@@ -657,23 +663,26 @@ Parser::TreeNode *Parser::parse_left_value()
 
 Parser::TreeNode *Parser::parse_if_statement()
 {
-	TreeNode *if_stm = new CompondStatement(IF_STATEMENT_K);
-	Scanner::Token token = getToken();
-
-	if_stm->addChild(parse_expression(), 0);
-
+	TreeNode* if_stm = new IfStatement();
+	Scanner::Token token = getToken();         //¿ÉÒÔÊÇif Ò²¿ÉÒÔÊÇelseif
+	if_stm->addChild(parse_expression(), IfStatement::ECompare);
 	if (!eatExpectedToken(Token(Scanner::Token_Then)))  {
 		return if_stm;
 	}
 
-	TreeNode* if_blok = parse_statements();
-	if_stm->addChild(if_blok, 1);
-
+	TreeNode* if_blok = parse_block();
+	if_stm->addChild(if_blok, IfStatement::EIf);
 	token = peekToken(true);
 	if (token.compare(Scanner::Token_Else)) {
 		eatExpectedToken(Token(Scanner::Token_Else));
-		TreeNode* else_blok = parse_statements();
-		if_stm->addChild(else_blok, 2);
+		TreeNode* else_blok = parse_block();
+		if_stm->addChild(else_blok, IfStatement::EElseOrEnd);
+	}
+	else if (token.compare(Scanner::Token_ElseIf))  {
+		TreeNode* elseIf = parse_if_statement();
+		TreeNode* block = new BlockNode();
+		block->addChild(elseIf, 0);
+		if_stm->addChild(block, IfStatement::EElseOrEnd);
 	}
 	return if_stm;
 }
@@ -685,7 +694,6 @@ Parser::TreeNode *Parser::parse_while_statement()
 	
 	t->addChild(parse_expression(), 0);
 
-	
 	if (!eatExpectedToken(Token(Scanner::Token_Then)))  {
 		return t;
 	}
@@ -693,7 +701,6 @@ Parser::TreeNode *Parser::parse_while_statement()
 	if (!eatExpectedToken(Token(Scanner::Token_End)))  {
 		return t;
 	}
-
 	return t;
 }
 
@@ -853,8 +860,7 @@ Parser::TreeNode *Parser::parse_bool_expression()
 	if (token.lexeme == "<=" || token.lexeme == ">=" || token.lexeme == "=="
 		|| token.lexeme == "<" || token.lexeme == ">" || token.lexeme == "!=") {
 		eatExpectedToken(token);
-		TreeNode *p = new TreeNode;
-		p->setNodeKind(COMPARE_K);
+		TreeNode *p = new CompareStatement();
 		p->setToken(token);
 		p->addChild(t, 0);
 		t = p;

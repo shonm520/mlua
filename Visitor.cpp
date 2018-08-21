@@ -61,3 +61,13 @@ void ReturnStatement::accept(Visitor* visitor, void* data)
 {
 	visitor->visit(this, data);
 }
+
+void IfStatement::accept(Visitor* visitor, void* data)
+{
+	visitor->visit(this, data);
+}
+
+void CompareStatement::accept(Visitor* visitor, void* data)
+{
+	visitor->visit(this, data);
+}

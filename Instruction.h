@@ -3,6 +3,36 @@
 #include "Value.h"
 
 
+
+struct Instruction;
+class InstructionSet
+{
+public:
+	enum Volum  {
+		None,
+		Small,
+		Medium,
+		Large
+	};
+	InstructionSet(Volum v);
+	std::vector<Instruction*> toVtInstructions();
+
+	Instruction* getInstructions(int& num) { num = _num; return _instructions; };
+	void pushInstruct(Instruction* ins)  {
+		_opcodes.push_back(ins);
+	}
+	Instruction* newInstruction();
+
+	void clearInstructions();
+
+private:
+	std::vector<Instruction*> _opcodes;
+	Instruction* _instructions;
+	int _num;
+};
+
+
+
 struct InstructionParam
 {
 	enum InstructionParamType
@@ -17,11 +47,11 @@ struct InstructionParam
 	};
 
 	InstructionParamType type;
-	union
-	{
+	union  {
 		Value *value;
 		String* name;
 		//int counter;
+		//InstructionSet* insSet;
 		int counter_index;
 		int opcode_index;
 		int array_index;
@@ -34,7 +64,7 @@ struct InstructionParam
 
 
 
-typedef struct Instruction_
+struct Instruction
 {
 	enum OpCode
 	{
@@ -50,6 +80,7 @@ typedef struct Instruction_
 		OpCode_Push,
 		OpCode_Pop,
 		OpCode_GenerateClosure,
+		OpCode_GenerateBlock,
 		OpCode_Ret,
 		OpCode_GenerateArgTable,
 		OpCode_MergeCounter,
@@ -58,6 +89,8 @@ typedef struct Instruction_
 		OpCode_Call,
 		OpCode_EnterClosure,
 		OpCode_QuitClosure,
+		OpCode_EnterBlock,
+		OpCode_QuitBlock,
 		OpCode_AddGlobalTable,
 		OpCode_DelGlobalTable,
 		OpCode_Plus,
@@ -82,8 +115,11 @@ typedef struct Instruction_
 		OpCode_Jmp,
 		OpCode_NewTable,
 		OpCode_SetTableArrayValue,
+
+		OpCode_If,
 	};
 	OpCode op_code;
 	InstructionParam param_a;
-}Instruction;
+	Instruction();
+};
 

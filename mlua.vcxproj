@@ -66,10 +66,11 @@
   <ItemGroup>
     <ClCompile Include="CodeGenerate.cpp" />
     <ClCompile Include="CodeWriter.cpp" />
+    <ClCompile Include="Instruction.cpp" />
     <ClCompile Include="Error.cpp" />
     <ClCompile Include="Function.cpp" />
     <ClCompile Include="GramTreeNode.cpp" />
-    <ClCompile Include="jackc.cpp" />
+    <ClCompile Include="mlua.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="Scanner.cpp" />
     <ClCompile Include="Stack.cpp" />

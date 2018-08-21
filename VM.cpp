@@ -89,8 +89,9 @@ void VM::registerFunc()
 }
 
 
-void VM::runCode(VtIns& vtIns)
+void VM::runCode(InstructionSet* insSet)
 {
+	auto& vtIns = insSet->toVtInstructions();
 	for (auto it = vtIns.begin(); it != vtIns.end(); ++it)  {
 		Instruction* ins = *it;
 		switch (ins->op_code)
@@ -143,6 +144,31 @@ void VM::runCode(VtIns& vtIns)
 		case Instruction::OpCode_Divide:
 			operateNum(ins);
 			break;
+
+		case Instruction::OpCode_If:
+			ifCompare(ins);
+			break;
+
+		case Instruction::OpCode_Less:
+		case Instruction::OpCode_Greater:
+		case Instruction::OpCode_LessEqual:
+		case Instruction::OpCode_GreaterEqual:
+		case Instruction::OpCode_NotEqual:
+		case Instruction::OpCode_Equal:
+			operateLogic(ins);
+			break;
+
+		case Instruction::OpCode_EnterBlock:
+			enterBlock(ins);
+			break;
+
+		case Instruction::OpCode_QuitBlock:
+			quitBlock(ins);
+			break;
+
+		case Instruction::OpCode_GenerateBlock:
+			generateBlock(ins);
+			break;
 		
 		default:
 			break;
@@ -170,7 +196,6 @@ void VM::add_global_table()
 
 void VM::call(Instruction* ins)
 {
-
 	int paramNum = ins->param_a.param.counter.counter1;
 	Value* callee = _stack->popValue();
 
@@ -183,9 +208,8 @@ void VM::call(Instruction* ins)
 	}
 	else if (callee->Type() == Value::TYPE_CLOSURE)  {
 		Closure* cl = static_cast<Closure*>(callee);
-		std::vector<Instruction*> vtIns = cl->getPrototype()->_opcodes;
 		_stackClosure->Push(cl);
-		runCode(vtIns);
+		runCode(cl->getPrototype()->getInstructionSet());
 		int retNum = cl->getPrototype()->getRetNum();
 		int needNum = ins->param_a.param.counter.counter2;
 		int n = retNum - needNum;                         //需要弹出多少个返回值
@@ -198,12 +222,12 @@ void VM::call(Instruction* ins)
 
 void VM::enterClosure()
 {
-	getCurrentClosure()->initTables();
+	getCurrentClosure()->initClosure();
 };
 
 void VM::quitClosure()
 {
-	getCurrentClosure()->clearTables();
+	getCurrentClosure()->clearClosure();
 	_stackClosure->popValue();
 }
 
@@ -342,21 +366,49 @@ void VM::operateNum(Instruction* ins)
 	}
 
 	double num = 0;
-	if (ins->op_code == Instruction_::OpCode_Plus)  {
+	if (ins->op_code == Instruction::OpCode_Plus)  {
 		num = ((Number*)num2)->Get() + ((Number*)num1)->Get();
 	}
-	else if (ins->op_code == Instruction_::OpCode_Minus)  {
+	else if (ins->op_code == Instruction::OpCode_Minus)  {
 		num = ((Number*)num2)->Get() - ((Number*)num1)->Get();
 	}
-	else if (ins->op_code == Instruction_::OpCode_Multiply)  {
+	else if (ins->op_code == Instruction::OpCode_Multiply)  {
 		num = ((Number*)num2)->Get() * ((Number*)num1)->Get();
 	}
-	else if (ins->op_code == Instruction_::OpCode_Divide)  {
+	else if (ins->op_code == Instruction::OpCode_Divide)  {
 		num = ((Number*)num2)->Get() / ((Number*)num1)->Get();
 	}
 	
 	Value* ret = new Number(num);
 	_stack->Push(ret);
+}
+
+void VM::operateLogic(Instruction* ins)
+{
+	Number* right = (Number*)_stack->popValue();
+	Number* left = (Number*)_stack->popValue();
+	BoolValue* retLogic = new BoolValue();
+	double num1 = left->Get();
+	double num2 = right->Get();
+	if (ins->op_code == Instruction::OpCode_Less)  {
+		retLogic->setLogicVal(num1 < num2);
+	}
+	else if (ins->op_code == Instruction::OpCode_Greater)  {
+		retLogic->setLogicVal(num1 > num2);
+	}
+	else if (ins->op_code == Instruction::OpCode_LessEqual)  {
+		retLogic->setLogicVal(num1 <= num2);
+	}
+	else if (ins->op_code == Instruction::OpCode_GreaterEqual)  {
+		retLogic->setLogicVal(num1 >= num2);
+	}
+	else if (ins->op_code == Instruction::OpCode_Equal)  {
+		retLogic->setLogicVal(num1 == num2);
+	}
+	else if (ins->op_code == Instruction::OpCode_NotEqual)  {
+		retLogic->setLogicVal(num1 != num2);
+	}
+	_stack->Push(retLogic);
 }
 
 
@@ -365,4 +417,63 @@ void VM::funcionRet(Instruction* ins)
  	int num = ins->param_a.param.counter.counter1;
  	Function* func = getCurrentClosure()->getPrototype();
 	func->setRetNum(num);
+}
+
+
+void VM::ifCompare(Instruction* ins)
+{
+	Value* logic = _stack->popValue();
+	
+	Value* leftBlock = _stack->popValue();
+
+	Value* rightBlock = nullptr;
+	if (ins->param_a.param.counter.counter1 > 1)  {
+		rightBlock = _stack->popValue();
+	}
+	bool runLeft = true;                //除了nil和false其他全为true
+	if (logic->Type() == Value::TYPE_NIL)  {
+		runLeft = false;
+	}
+	else {
+		if (logic->Type() == Value::TYPE_BOOL)  {
+			runLeft = ((BoolValue*)logic)->getLogicVal();
+		}
+	}
+	
+	if (runLeft)  {
+		runBlockCode(leftBlock);
+	}
+	else  {
+		if (rightBlock)  {
+			runBlockCode(rightBlock);
+		}
+	}
+}
+
+
+void VM::enterBlock(Instruction* ins)
+{
+
+}
+
+void VM::quitBlock(Instruction* ins)
+{
+
+}
+
+void VM::runBlockCode(Value* val)
+{
+	if (val)  {
+		assert(val->Type() == Value::TYPE_INSTRUCTVAL);
+		getCurrentClosure()->addBlockTable();
+		runCode(((InstructionValue*)val)->getInstructionSet());
+		getCurrentClosure()->removeBlockTable();
+	}
+}
+
+
+void VM::generateBlock(Instruction* ins)
+{
+	Value* val = ins->param_a.param.value;
+	_stack->Push(val);
 }

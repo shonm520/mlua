@@ -16,4 +16,6 @@ public:
 	virtual void visit(OperateStatement* ops, void* data) = 0;
 	virtual void visit(FunctionStatement* fsm, void* data) = 0;
 	virtual void visit(ReturnStatement* rtSmt, void* data) = 0;
+	virtual void visit(IfStatement* ifSmt, void* data) = 0;
+	virtual void visit(CompareStatement* cmpSmt, void* data) = 0;
 };

@@ -71,6 +71,8 @@ public:
 	void visit(OperateStatement* ops, void* data) override;
 	void visit(FunctionStatement* fsm, void* data) override;
 	void visit(ReturnStatement* rtSmt, void* data) override;
+	void visit(IfStatement* ifSmt, void* data) override;
+	void visit(CompareStatement* cmpSmt, void* data);
 
 	void enter_function();       //在访问chunk和function body会进入
 	void enter_block();
@@ -83,12 +85,12 @@ public:
 	//void generate_closure(CodeWrite*);
 	void generate_func_name(CodeWrite*);
 
-	void generateFuncCode(bool bGlobal, SyntaxTreeNodeBase* name, SyntaxTreeNodeBase* params, SyntaxTreeNodeBase* body, Function*,  CodeWrite*);
+	void generateFuncCode(bool bGlobal, SyntaxTreeNodeBase* name, SyntaxTreeNodeBase* params, SyntaxTreeNodeBase* body, CodeWrite*);
 	void generateFuncBodyCode(SyntaxTreeNodeBase*, CodeWrite*);
-	void generateClosureCode(Function*, CodeWrite*);
+	void generateClosureCode(InstructionSet*, CodeWrite*);
 
 	//void generate_explist_code(SyntaxTreeNodeBase* exp_list, CodeWrite*);
-	void generate_nodelist_code(SyntaxTreeNodeBase* exp_list, CodeWrite*, ExpVarData::Oprate_Type type);
+	void generateNodeListCode(SyntaxTreeNodeBase* exp_list, CodeWrite*, ExpVarData::Oprate_Type type);
 	//void generate_namelist_code(SyntaxTreeNodeBase* name_list, CodeWrite*);
 
 	void generate_assign_code(SyntaxTreeNodeBase* name_list, SyntaxTreeNodeBase* exp_list, CodeWrite*);

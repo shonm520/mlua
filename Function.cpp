@@ -3,6 +3,15 @@
 #include "State.h"
 
 
+
+
+InstructionValue::InstructionValue():
+	_insSet(nullptr)
+{
+
+}
+
+
 Function::Function():
 	_retNum(0)
 {
@@ -36,15 +45,29 @@ Closure::Closure(State* s)
 
 }
 
-void Closure::initTables()
+void Closure::initClosure()
 {
-	clearTables();
+	clearClosure();
 	_nest_tables.push_back(new Table());
 }
 
-void Closure::clearTables()
+void Closure::clearClosure()
 {
 	_nest_tables.clear();
+}
+
+void Closure::addBlockTable()
+{
+	_nest_tables.push_back(new Table());
+}
+
+void Closure::removeBlockTable()
+{
+	Table* top = getTopTable();
+	if (top)  {
+		delete top;
+	}
+	_nest_tables.pop_back();
 }
 
 Table* Closure::getTopTable()

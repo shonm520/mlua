@@ -19,9 +19,8 @@ private:
 public:
 	void execute();
 	void execute_frame();
-	//typedef  Instruction_ Instruction;
 	typedef std::vector<Instruction*> VtIns;
-	void runCode(VtIns&);
+	void runCode(InstructionSet*);
 
 private:
 	void generateClosure(Instruction* ins);
@@ -42,8 +41,17 @@ private:
 	void getLoacalVar(Instruction* ins);
 	void funcionRet(Instruction* ins);
 	void operateNum(Instruction* ins);
+	void operateLogic(Instruction* ins);
 	void registerFunc();
 	Closure* getCurrentClosure();
+
+	void ifCompare(Instruction* ins);
+	void enterBlock(Instruction* ins);
+	void quitBlock(Instruction* ins);
+
+	void generateBlock(Instruction* ins);
+
+	void runBlockCode(Value* val);
 
 };
 

@@ -2,7 +2,6 @@
 #include "Value.h"
 #include "State.h"
 #include "Function.h"
-//#include "Runtime.h"
 #include "CodeWriter.h"
 #include "VM.h"
 #include "Visitor.h"
@@ -26,18 +25,16 @@ void CodeGenerate(SyntaxTreeNodeBase* root, State* state)
 	CodeWrite boot;
 	root->accept(&codeGen, &boot);
 
-	std::vector<Instruction*> vtIns;
-	boot.putInstructions(vtIns);
 	VM vm(state);
-	vm.runCode(vtIns);
+	vm.runCode(boot.fetchInstructionSet());
 }
 
 
 void CodeGenerateVisitor::visit(Terminator* term, void* data)
 {
 	CodeWrite* writer = static_cast<CodeWrite*>(data);
-	Instruction_ *ins = writer->newInstruction();
-	ins->op_code = Instruction_::OpCode_Push;
+	Instruction *ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_Push;
 	ins->param_a.type = InstructionParam::InstructionParamType_Value;
 	ins->param_a.param.value = term->get_val();
 }
@@ -48,12 +45,12 @@ void CodeGenerateVisitor::visit(IdentifierNode* idt, void* data)
 	Instruction* ins = writer->newInstruction();
 	ExpVarData::Oprate_Type type = static_cast<ExpVarData*>(writer->paramRW)->type;
 	if (type == ExpVarData::VAR_SET)  {                                   //局部变量赋值
-		ins->op_code = Instruction_::OpCode_SetLocalVar;
+		ins->op_code = Instruction::OpCode_SetLocalVar;
 		ins->param_a.type = InstructionParam::InstructionParamType_Name;
 		ins->param_a.param.name = (String*)idt->get_val();
 	}
 	else if (type == ExpVarData::VAR_GET)  {
-		ins->op_code = Instruction_::OpCode_GetLocalVar;
+		ins->op_code = Instruction::OpCode_GetLocalVar;
 		ins->param_a.type = InstructionParam::InstructionParamType_Name;
 		ins->param_a.param.name = (String*)idt->get_val();
 	}
@@ -78,7 +75,7 @@ void CodeGenerateVisitor::generateChunkCode(ChunkNode* chunk, CodeWrite* writer)
 	ins->op_code = Instruction::OpCode_AddGlobalTable;
 
 	generateFuncCode(false, nullptr, nullptr, 
-		chunk->getChildByIndex(0), chunk->getFunction(), writer);
+		chunk->getChildByIndex(0), writer);
 
 	ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_Call;
@@ -88,24 +85,28 @@ void CodeGenerateVisitor::generateChunkCode(ChunkNode* chunk, CodeWrite* writer)
 	ins->op_code = Instruction::OpCode_DelGlobalTable;
 }
 
-void CodeGenerateVisitor::generateClosureCode(Function* func, CodeWrite* writer)
+void CodeGenerateVisitor::generateClosureCode(InstructionSet* func, CodeWrite* writer)
 {
 	Instruction *ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_GenerateClosure;
 	ins->param_a.type = InstructionParam::InstructionParamType_Value;
-	ins->param_a.param.value = func;
+
+	Function* valInsSet = new Function();
+	valInsSet->setInstructionSet(func);
+
+	ins->param_a.param.value = valInsSet;
 }
 
 
 void CodeGenerateVisitor::generateFuncCode(bool bGlobal, SyntaxTreeNodeBase* name, SyntaxTreeNodeBase* params,
-							SyntaxTreeNodeBase* body, Function* func, CodeWrite* data)
+							SyntaxTreeNodeBase* body, CodeWrite* data)
 {
 	CodeWrite f_writer;
 	Instruction *ins = f_writer.newInstruction();
 	ins->op_code = Instruction::OpCode_EnterClosure;
 
 	if (params)  {
-		generate_nodelist_code(params, &f_writer, ExpVarData::VAR_SET);
+		generateNodeListCode(params, &f_writer, ExpVarData::VAR_SET);
 		ins = f_writer.newInstruction();
 		ins->op_code = Instruction::OpCode_InitLocalVar;
 		ins->param_a.param.counter.counter1 = params->getSiblings();
@@ -114,11 +115,10 @@ void CodeGenerateVisitor::generateFuncCode(bool bGlobal, SyntaxTreeNodeBase* nam
 	generateFuncBodyCode(body, &f_writer);
 
 	ins = f_writer.newInstruction();
-	ins->op_code = Instruction_::OpCode_QuitClosure;
-	f_writer.putInstructions(func->_opcodes);
+	ins->op_code = Instruction::OpCode_QuitClosure;
 
 	CodeWrite* writer = static_cast<CodeWrite*>(data);
-	generateClosureCode(func, writer);
+	generateClosureCode(f_writer.fetchInstructionSet(), writer);
 
 	if (name)  {
 		ExpVarData ed;
@@ -156,11 +156,11 @@ void CodeGenerateVisitor::visit(UnaryExpression* uexp, void* data)
 	exp->accept(this, data);
 
 	CodeWrite* writer = static_cast<CodeWrite*>(data);
-	Instruction_ *ins = writer->newInstruction();
-	ins->op_code = Instruction_::OpCode_ResetCounter;
+	Instruction *ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_ResetCounter;
 
 	ins = writer->newInstruction();
-	ins->op_code = Instruction_::OpCode_Not;
+	ins->op_code = Instruction::OpCode_Not;
 }
 
 
@@ -189,13 +189,12 @@ void CodeGenerateVisitor::visit(LocalNameListStatement* stm, void* data)
 		exp->accept(this, writer);
 	}
 
-	generate_nodelist_code(name_list, writer, ExpVarData::VAR_SET);
+	generateNodeListCode(name_list, writer, ExpVarData::VAR_SET);
 
 	Instruction* ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_InitLocalVar;
 	ins->param_a.param.counter.counter1 = n1;
 	ins->param_a.param.counter.counter2 = n2;
-
 }
 
 void CodeGenerateVisitor::visit(AssignStatement* stm, void* data)
@@ -223,7 +222,7 @@ void CodeGenerateVisitor::visit(AssignStatement* stm, void* data)
 		exp->accept(this, writer);
 	}
 
-	generate_nodelist_code(name_list, writer, ExpVarData::VAR_SET);
+	generateNodeListCode(name_list, writer, ExpVarData::VAR_SET);
 
 	Instruction* ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_Assign;
@@ -239,7 +238,7 @@ void CodeGenerateVisitor::visit(NormalCallFunciton* callFun, void* data)
 
 	CodeWrite* writer = static_cast<CodeWrite*>(data);
 	if (paramList)  {
-		generate_nodelist_code(paramList, writer, ExpVarData::VAR_GET);
+		generateNodeListCode(paramList, writer, ExpVarData::VAR_GET);
 	}
 
 	ExpVarData ed = { ExpVarData::VAR_GET };
@@ -262,7 +261,7 @@ void CodeGenerateVisitor::visit(NormalCallFunciton* callFun, void* data)
 }
 
 
-void CodeGenerateVisitor::generate_nodelist_code(SyntaxTreeNodeBase* node_list, CodeWrite* writer, ExpVarData::Oprate_Type type)
+void CodeGenerateVisitor::generateNodeListCode(SyntaxTreeNodeBase* node_list, CodeWrite* writer, ExpVarData::Oprate_Type type)
 {
 	ExpVarData ed = { type };
 	for (auto exp = node_list; exp != nullptr; exp = exp->getNextNode())  {
@@ -305,16 +304,77 @@ void CodeGenerateVisitor::visit(FunctionStatement* fsm, void* data)
 {
 	CodeWrite* writer = static_cast<CodeWrite*>(data);
 	generateFuncCode(fsm->getGlobal(), fsm->getFuncName(), fsm->getFuncParams(),
-		fsm->getFuncBody(), fsm->getFunction(), writer);
+		fsm->getFuncBody(), writer);
 }
 
 void CodeGenerateVisitor::visit(ReturnStatement* rtSmt, void* data)
 {
 	CodeWrite* writer = static_cast<CodeWrite*>(data);
 	auto rtList = rtSmt->getChildByIndex(0);
-	generate_nodelist_code(rtList, writer, ExpVarData::VAR_GET);
+	generateNodeListCode(rtList, writer, ExpVarData::VAR_GET);
 
 	Instruction* ins = writer->newInstruction();
-	ins->op_code = Instruction_::OpCode_Ret;
+	ins->op_code = Instruction::OpCode_Ret;
 	ins->param_a.param.counter.counter1 = rtList->getSiblings();
+}
+
+void CodeGenerateVisitor::visit(IfStatement* ifSmt, void* data)
+{
+	CodeWrite* writer = static_cast<CodeWrite*>(data);
+	Instruction* ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_EnterBlock;
+
+	BlockNode* ifSmtRight = (BlockNode*)ifSmt->getChildByIndex(IfStatement::EElseOrEnd);
+	if (ifSmtRight)  {
+		CodeWrite br_writer;
+		ifSmtRight->accept(this, &br_writer);
+		ins = writer->newInstruction();
+		ins->op_code = Instruction::OpCode_GenerateBlock;
+		ins->param_a.type = InstructionParam::InstructionParamType_Value;
+		InstructionValue* valInsSet = br_writer.fetchInstructionVal();
+		ins->param_a.param.value = valInsSet;
+	}
+
+	BlockNode* ifSmtLeft = (BlockNode*)ifSmt->getChildByIndex(IfStatement::EIf);
+	CodeWrite bl_writer;
+	ifSmtLeft->accept(this, &bl_writer);
+	ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_GenerateBlock;
+	ins->param_a.type = InstructionParam::InstructionParamType_Value;
+	ins->param_a.param.value = bl_writer.fetchInstructionVal();
+	ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_QuitBlock;
+
+	auto cmp = ifSmt->getChildByIndex(IfStatement::ECompare);     //逻辑比较部分放在最后
+	ExpVarData ed = { ExpVarData::VAR_GET };
+	writer->paramRW = &ed;
+	cmp->accept(this, data);
+
+	ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_If;
+	ins->param_a.param.counter.counter1 = (ifSmtRight == 0) ? 1 : 2;
+}
+
+void CodeGenerateVisitor::visit(CompareStatement* cmpSmt, void* data)
+{
+	CodeWrite* writer = static_cast<CodeWrite*>(data);
+	ExpVarData ed = { ExpVarData::VAR_GET };
+	writer->paramRW = &ed;
+	auto left = cmpSmt->getChildByIndex(CompareStatement::ECmpLef);
+	left->accept(this, data);
+
+	auto right = cmpSmt->getChildByIndex(CompareStatement::ECmpRight);
+	ed = { ExpVarData::VAR_GET };
+	writer->paramRW = &ed;
+	right->accept(this, data);
+
+	Instruction* ins = writer->newInstruction();
+	Scanner::Token t = cmpSmt->getToken();
+
+	std::string strCmp[] = {"<", ">", "<=", ">=", "=", "=="};
+	for (int i = 0; i < 6; i++)  {
+		if (t.lexeme == strCmp[i])  {
+			ins->op_code = (Instruction::OpCode)(Instruction::OpCode_Less + i);
+		}
+	}
 }
