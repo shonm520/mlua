@@ -7,8 +7,7 @@
 #include "Visitor.h"
 
 
-CodeGenerateVisitor::CodeGenerateVisitor(State* state)
-	:_state(state)
+CodeGenerateVisitor::CodeGenerateVisitor()
 {
 }
 
@@ -20,7 +19,7 @@ CodeGenerateVisitor::~CodeGenerateVisitor()
 
 void CodeGenerate(SyntaxTreeNodeBase* root, State* state)
 {
-	CodeGenerateVisitor codeGen(state);
+	CodeGenerateVisitor codeGen;
 
 	CodeWrite boot;
 	root->accept(&codeGen, &boot);
@@ -263,7 +262,6 @@ void CodeGenerateVisitor::generateNodeListCode(SyntaxTreeNodeBase* node_list, Co
 	for (auto exp = node_list; exp != nullptr; exp = exp->getNextNode())  {
 		writer->paramRW = &ed;
 		if (exp->getNodeKind() == SyntaxTreeNodeBase::FUNCTION_CALL_K)  {
-			FuncVarData fd = { 1 };
 			((NormalCallFunciton*)exp)->_needRetNum = 1;
 		}
 		exp->accept(this, writer);
@@ -277,11 +275,9 @@ void CodeGenerateVisitor::visit(OperateStatement* ops, void* data)
 	auto term2 = ops->getTermRight();
 
 	if (term1->getNodeKind() == SyntaxTreeNodeBase::FUNCTION_CALL_K)  {
-		FuncVarData_ fd = { 1 };
 		((NormalCallFunciton*)term1)->_needRetNum = 1;
 	}
 	if (term2->getNodeKind() == SyntaxTreeNodeBase::FUNCTION_CALL_K)  {
-		FuncVarData_ fd = { 1 };
 		((NormalCallFunciton*)term2)->_needRetNum = 1;
 	}
 
