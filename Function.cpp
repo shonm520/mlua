@@ -36,7 +36,7 @@ Closure* Function::generateClosure(State* s)
 
 
 Closure::Closure(State* s)
-	:_state(s), 
+	:_state(s), _realParamNum(0),
 	_realRetNum(0), _needRetNum(0),
 	_prototype(nullptr),
 	_parentClosure(nullptr),

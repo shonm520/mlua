@@ -120,6 +120,7 @@ struct Instruction
 		OpCode_TableDefine,
 		OpCode_TableArrIndex,
 		OpCode_TableMemAccess,
+		OpCode_PassFunParam,
 	};
 	OpCode op_code;
 	InstructionParam param_a;

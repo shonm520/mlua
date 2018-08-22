@@ -32,6 +32,7 @@ private:
 	void get_table(Instruction* ins);
 
 	void call(Instruction* ins);
+	void passFunParam(Instruction* ins);
 	void initLocalVar(Instruction* ins);
 	void assignOperate(Instruction* ins);
 	void assignVals(int, int, int type);

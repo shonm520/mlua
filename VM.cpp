@@ -125,6 +125,10 @@ void VM::runCode(InstructionSet* insSet)
 			generateClosure(ins);
 			break;
 
+		case Instruction::OpCode_PassFunParam:
+			passFunParam(ins);
+			break;
+
 		case Instruction::OpCode_Call:
 			call(ins);
 			break;
@@ -224,6 +228,7 @@ void VM::call(Instruction* ins)
 	else if (callee->Type() == Value::TYPE_CLOSURE)  {
 		Closure* cl = static_cast<Closure*>(callee);
 		_stackClosure->Push(cl);
+		cl->setRealParamNum(paramNum);
 		cl->setNeedRetNum(ins->param_a.param.counter.counter2);
 		runCode(cl->getPrototype()->getInstructionSet());
 	}
@@ -253,6 +258,21 @@ Closure* VM::getCurrentClosure()
 }
 
 
+void VM::passFunParam(Instruction* ins)
+{
+	int needParamNum = ins->param_a.param.counter.counter1;
+	int realParamNum = getCurrentClosure()->getRealParamNum();
+	int n = needParamNum - realParamNum;
+	if (n > 0)  {
+		while (n > 0)  {
+			_stack->Push(new Nil());
+			n--;
+		}
+	}
+	
+	assignVals(needParamNum, realParamNum, 0);               //Èç¹ûÑ¹ÈëµÄÖµ±È²ÎÊı¶à£¬ºóÃæ»á´¦Àíµô
+}
+
 void VM::assignVals(int num_key, int num_val, int type)      //º¯Êıµ÷ÓÃ´«Èë²ÎÊıÊ±Ò²»áµ÷ÓÃÕâÀï
 {
 	Table* tab = getCurrentClosure()->getTopTable();
@@ -261,10 +281,10 @@ void VM::assignVals(int num_key, int num_val, int type)      //º¯Êıµ÷ÓÃ´«Èë²ÎÊıÊ
 	for (int i = 0; i < num_key; i++)  {
 		listKeys.push_front(_stack->popValue());
 	}
-	if (num_key > num_val)  {                   //ÖµÉÙÓÚkey£¬ÓĞ¿ÉÄÜÊÇº¯ÊıÒıÆğµÄa£¬b =f()
-		num_val = _stack->Size();   
+	if (num_key > num_val)  {                   //ÖµÉÙÓÚkey£¬ÓĞ¿ÉÄÜÊÇº¯ÊıÒıÆğµÄa£¬b =f(),×î¶àµ¯³ökeyµÄ¸öÊı£¬ÒòÎªÕ»ÉÏ¿ÉÄÜÓĞÆäËûµØ·½µÄÖµ
+		num_val = num_key < _stack->Size() ? num_key : _stack->Size();
 	}
-	for (int i = 0; i < num_val; i++)    {      //Òª°ÑÊ£ÏÂµÄÈ«²¿µ¯³ö
+	for (int i = 0; i < num_val; i++)    {      //Òª°ÑÊ£ÏÂµÄÖµÈ«²¿µ¯³ö
 		Value* val = _stack->popValue();
 		listVals.push_front(val);
 	}
