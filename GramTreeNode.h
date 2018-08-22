@@ -10,7 +10,6 @@ using std::vector;
 
 #include "Scanner.h"
 #include "Value.h"
-//#include "Runtime.h"
 #include "Function.h"
 
 
@@ -176,7 +175,6 @@ public:
 
 	void addChild(SyntaxTreeNodeBase* pChild, int ind);
 
-
 	SyntaxTreeNodeBase* getChildByIndex(int ind)  {
 		if (ind >= 0 && ind < Child_Num_Const)  {
 			return _child[ind];
@@ -201,36 +199,6 @@ public:
 		node->_siblings = _siblings;
 		return  node;
 	}
-
-	//virtual Value* get_val(){ return nullptr; };
-
-
-	static SyntaxTreeNodeBase* s_curVarDecType;                                //当前的类型声明,用于解析int a=1,b=2;b的类型
-
-	static stack<ClassTreeNode*> s_stackCurClassZone;                        //当前类的作用域
-	static ClassTreeNode* getCurCurClassNode();
-	static void insertClassNode(ClassTreeNode* node);
-	static void quitClassZone();
-
-
-	static stack<SubroutineDecNode*> s_stackCurSubroutineZone;               //当前的函数作用域
-	static SubroutineDecNode* getCurSubroutineNode();
-	static void insertSubRoutineNode(SubroutineDecNode* node);
-	static void quitSubRoutineZone();
-
-	static stack<SubroutineBodyNode*> s_stackCurSubroutineBodyZone;          //当前的函数体作用域
-	static SubroutineBodyNode* getCurSubroutineBodyNode();
-	static void insertSubRoutineBodyNode(SubroutineBodyNode* node);
-	static void quitSubRoutineBodyZone();
-
-
-	static stack<CompondStatement*> s_stackCurCompoundStatmentZone;          //当前符合语句作用域
-	static CompondStatement* getCurCompoundStatmentNode(int* pNum = 0);  
-	static void insertCompoundStatmentNode(CompondStatement* node);
-	static void quitCompoundStatmentZone();
-
-	static bool isInCompound(SyntaxTreeNodeBase* node);       //在整个复合语句,为什么要区分体,因为if(a > 0) {int a = 3;}  这两个作用域不一样
-	static bool isInCompoundBody(SyntaxTreeNodeBase* node);   //在复合语句的体
 };
 
 
@@ -481,7 +449,7 @@ public:
 };
 
 
-////t = {1,2,[3]=3, d=5} 1,2是TableArrayFiled,[3]=7是TableIndexField,d=5是TableNameField
+//t = {1,2,[3]=3, d=5} 1,2是TableArrayFiled,[3]=7是TableIndexField,d=5是TableNameField
 
 class TableIndexField : public SyntaxTreeNodeBase  {   
 public:
@@ -597,117 +565,3 @@ public:
 
 	virtual void accept(Visitor* visitor, void* data);
 };
-
-
-
-
-class CompondStatement : public SyntaxTreeNodeBase  {    
-public:
-	CompondStatement(int nK) : SyntaxTreeNodeBase(nK)  {
-		insertCompoundStatmentNode(this);
-	}
-
-	enum CompondStmt  {
-		eExpress = 0,
-		eBlockBody
-	};
-
-	virtual ~CompondStatement(){}
-
-};
-
-
-class BaseBlockBody : public SyntaxTreeNodeBase  {          //块,也有变量,语句
-public:
-	BaseBlockBody() : SyntaxTreeNodeBase()  {
-	}
-	virtual ~BaseBlockBody(){}
-
-	enum BlockBody  {
-		VarDec = 0,
-		Statement
-	};
-
-	TreeNodeList _statementList;
-	TreeNodeList _varDecList;
-	void addStatement(SyntaxTreeNodeBase* node)  {
-// 		if (getCurCompoundStatmentNode() == nullptr)  {     //没有复合语句(if,while等)才添加子语句,因为在if语句中会作为子语句被添加的
-// 			_statementList.Push(node);
-// 		}
-		_statementList.Push(node);
-	}
-	void addVarDec(SyntaxTreeNodeBase* node)  {
-// 		if (getCurCompoundStatmentNode() == nullptr)  {     //没有复合语句(if,while等)才添加子语句,因为在if语句中会作为子语句被添加的
-// 			_varDecList.Push(node);
-// 		}
-		_varDecList.Push(node);
-	}
-	void addBodyChild()  {
-		SyntaxTreeNodeBase::addChild(_varDecList.getHeadNode(), VarDec);
-		SyntaxTreeNodeBase::addChild(_statementList.getHeadNode(), Statement);
-	}
-};
-
-class CompondStmtBody : public BaseBlockBody  {
-public:
-	CompondStmtBody() : BaseBlockBody()  {
-
-	}
-	virtual ~CompondStmtBody(){}
-
-
-};
-
-
-
-class SubroutineBodyNode;
-
-class SubroutineDecNode : public SyntaxTreeNodeBase  {     //整个函数的节点
-public:
-	SubroutineDecNode() : SyntaxTreeNodeBase()  {
-		_nodeKind = SUBROUTINE_DEC_K;
-		insertSubRoutineNode(this);
-	}
-	virtual ~SubroutineDecNode(){}
-
-	enum  SubroutineFiled  {
-		Sign = 0,
-		Ret,
-		Name,
-		Params,
-		Body
-	};
-
-	virtual string getName() override;
-	virtual string getSignName() override;
-	string getRetType();
-	SyntaxTreeNodeBase* getFirstParam();
-	int getFuncLocalsNum();
-	SubroutineBodyNode* getSubroutineBody();
-
-	bool hasVarDecInParams(SyntaxTreeNodeBase* node);       //函数的变量是否在参数列表中
-};
-
-
-class SubroutineBodyNode : public BaseBlockBody  {    //函数体节点
-public:
-	SubroutineBodyNode() : BaseBlockBody()  {
-		_nodeKind = SUBROUTINE_BODY_K;
-		insertSubRoutineBodyNode(this);
-	}
-	virtual ~SubroutineBodyNode(){}
-
-	
-	bool hasVarDec(SyntaxTreeNodeBase* node);
-	VarDecNode* getCurVarDec();
-
-	int getFuncLocalsNum();
-};
-
-
-
-
-
-
-
-

@@ -304,63 +304,6 @@ Parser::TreeNode *Parser::parse_type()
 	return t;
 }
 
-Parser::TreeNode *Parser::parse_subroutine_dec_list()
-{
-	auto token = peekToken(true);
-	TreeNodeList nodeList;
-	while (token.lexeme == "constructor" ||
-		   token.lexeme == "function" || 
-		   token.lexeme == "method") {
-		TreeNode *q = parse_subroutin_dec();    //解析其中一个函数
-		TreeNode::quitSubRoutineZone();
-		nodeList.Push(q);
-		
-		token = peekToken(true);
-	}
-	return nodeList.getHeadNode();
-}
-
-Parser::TreeNode *Parser::parse_subroutin_dec()
-{
-	TreeNode *t = new SubroutineDecNode();
-
-	Scanner::Token token = getToken();
-	if (token.lexeme == "constructor" ||
-		token.lexeme == "function" ||
-		token.lexeme == "method")  {
-		auto node = new TreeNode();
-		node->setToken(token);
-		t->addChild(node, SubroutineDecNode::Sign);
-	}
-	else {
-		syntaxError(_strCurParserFileName, "constructor or function or method", token);
-		return t;
-	}
-	t->addChild(parse_type(), SubroutineDecNode::Ret);
-	token = getToken();
-	if (token.kind == Scanner::ID) {
-		auto node = new TreeNode();
-		node->setToken(token);
-		node->setLexeme(getFullName(token.lexeme));
-		t->addChild(node, SubroutineDecNode::Name);
-	}
-	else {
-		syntaxError(_strCurParserFileName, "identifile", token);
-		return t;
-	}
-
-	if (! eatExpectedToken(Token(Scanner::SYMBOL, "(")))  {
-		return t;
-	}
-	t->addChild(parse_params(), SubroutineDecNode::Params);
-	if (!eatExpectedToken(Token(Scanner::SYMBOL, ")")))  {
-		return t;
-	}
-	t->addChild(parse_subroutine_body(), SubroutineDecNode::Body);
-	t->quitSubRoutineBodyZone();
-	return t;
-}
-
 Parser::TreeNode *Parser::parse_params()
 {
 	TreeNode *t = nullptr;
@@ -400,92 +343,6 @@ Parser::TreeNode *Parser::parse_param()
 		syntaxError(_strCurParserFileName, "identifier", token);
 		return t;
 	}
-	return t;
-}
-
-Parser::TreeNode *Parser::parse_subroutine_body()
-{
-	_hasRetStatement = false;
-
-	TreeNode *t = new SubroutineBodyNode();
-
-	if (!eatExpectedToken(Token(Scanner::Token_LeftBrace)))  {
-		return t;
-	}
-
-	parse_statements();
-
-	if (!eatExpectedToken(Token(Scanner::Token_RightBrace)))  {
-		return t;
-	}
-
-	return t;
-}
-
-Parser::TreeNode *Parser::parse_var_dec_list(TreeNodeList& statementNodeList)
-{
-	TreeNodeList nodeList;
-	Scanner::Token token = peekToken(true); 
-	bool is_val_dec = false;           //任何语句都可以走到这里来,所以要判断是否是变量声明语句
-	if (isBasicType(token.lexeme))  {
-		TreeNode *q = parse_var_dec(statementNodeList);
-		nodeList.Push(q);
-		TreeNode::s_curVarDecType = q->getChildByIndex(VarDecNode::VarDec_Type);     //int a,b 先保存a的声明,后面要给b的
-		is_val_dec = true;
-	}
-	else if (token.kind == Scanner::ID) { // 类变量声明
-		token = peekToken(false);
-		if (token.kind == Scanner::ID) {
-			TreeNode *q = parse_var_dec(statementNodeList);
-			nodeList.Push(q);
-			TreeNode::s_curVarDecType = q->getChildByIndex(VarDecNode::VarDec_Type);
-			is_val_dec = true;
-		}
-	}
-
-	if (is_val_dec)  {
-		token = peekToken(true);
-		while (token.lexeme == ",")  {
-			eatExpectedToken(Token(Scanner::Token_Comma));
-			TreeNode *q = parse_var_dec(statementNodeList);
-			nodeList.Push(q);
-			token = peekToken(true);
-		}
-		eatExpectedToken(Token(Scanner::Token_Semicolon));
-	}
-	TreeNode::s_curVarDecType = nullptr;
-	return nodeList.getHeadNode();
-}
-
-Parser::TreeNode *Parser::parse_var_dec(TreeNodeList& statementNodeList)
-{
-	TreeNode *t = new VarDecNode();
-	Scanner::Token token;
-	TreeNode* node_type = parse_type();                     //形如int a, b, c 解析到b时
-	if (TreeNode::s_curVarDecType )  {
-		if (TreeNode::s_curVarDecType != node_type)  {
-			ungetToken();
-			node_type = TreeNode::s_curVarDecType->clone();
-		}
-	}
-	t->addChild(node_type, VarDecNode::VarDec_Type);
-	
-	token = getToken();
-	TreeNode* node_name = new TreeNode();
-	node_name->setToken(token);
-	t->addChild(node_name, VarDecNode::VarDec_Name);
-	token = getToken();
-	if (token.lexeme == "=")  {
-		ungetToken();
-		ungetToken();
-		TreeNode* node = parse_assign_statement();
-		statementNodeList.Push(node);
-	}
-	else if (token.lexeme != ";" && token.lexeme != ","){
-		syntaxError(_strCurParserFileName, ";", token);
-		return t;
-	}
-	ungetToken();
 	return t;
 }
 
@@ -611,11 +468,11 @@ Parser::TreeNode *Parser::parse_statement()
 	Scanner::Token token = peekToken(true);
 	if (token.lexeme == "if") {
 		t = parse_if_statement();
-		TreeNode::quitCompoundStatmentZone();
+		//TreeNode::quitCompoundStatmentZone();
 	}
 	else if (token.lexeme == "while") {
 		t = parse_while_statement();
-		TreeNode::quitCompoundStatmentZone();
+		//TreeNode::quitCompoundStatmentZone();
 	}
 	else if (token.lexeme == "return") {
 		t = parse_return_statement();
@@ -705,7 +562,7 @@ Parser::TreeNode *Parser::parse_if_statement()
 
 Parser::TreeNode *Parser::parse_while_statement()
 {
-	TreeNode *t = new CompondStatement(WHILE_STATEMENT_K);
+	TreeNode *t = new TreeNode(WHILE_STATEMENT_K);
 	Scanner::Token token = getToken();
 	
 	t->addChild(parse_expression(), 0);
