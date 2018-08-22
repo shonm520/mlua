@@ -51,10 +51,13 @@ private:
 		Oprate_Type type;
 	};
 
-
 	typedef struct FuncVarData_  {
 		int num;
 	}FuncVarData;
+
+	struct TableArrayIndex  {
+		int num;
+	};
 
 
 public:
@@ -73,6 +76,12 @@ public:
 	void visit(ReturnStatement* rtSmt, void* data) override;
 	void visit(IfStatement* ifSmt, void* data) override;
 	void visit(CompareStatement* cmpSmt, void* data);
+	void visit(TableDefine* tbdSmt, void* data);
+	void visit(TableNameField* tnfSmt, void* data);
+	void visit(TabMemberAccessor* tmsSmt, void* data);
+	void visit(TabIndexAccessor* tiSmt, void* data);
+	void visit(TableArrayFiled* taSmt, void* data);
+	void visit(TableIndexField* tifSmt, void* data);
 
 	void enter_function();       //在访问chunk和function body会进入
 	void enter_block();

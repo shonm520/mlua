@@ -18,4 +18,10 @@ public:
 	virtual void visit(ReturnStatement* rtSmt, void* data) = 0;
 	virtual void visit(IfStatement* ifSmt, void* data) = 0;
 	virtual void visit(CompareStatement* cmpSmt, void* data) = 0;
+	virtual void visit(TableDefine* tbdSmt, void* data) = 0;
+	virtual void visit(TableNameField* tbdSmt, void* data) = 0;
+	virtual void visit(TableArrayFiled* taSmt, void* data) = 0;
+	virtual void visit(TableIndexField* taSmt, void* data) = 0;
+	virtual void visit(TabMemberAccessor* tmsSmt, void* data) = 0;
+	virtual void visit(TabIndexAccessor* tmsSmt, void* data) = 0;
 };

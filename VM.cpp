@@ -29,6 +29,9 @@ void PrintType(Value* val)
 	else if (val->Type() == Value::TYPE_CLOSURE)  {
 		printf("funciont: 0x%08x", val);
 	}
+	else if (val->Type() == Value::TYPE_TABLE)  {
+		printf("table: 0x%08x", val);
+	}
 }
 
 
@@ -169,6 +172,18 @@ void VM::runCode(InstructionSet* insSet)
 		case Instruction::OpCode_GenerateBlock:
 			generateBlock(ins);
 			break;
+
+		case Instruction::OpCode_TableDefine:
+			tableDefine(ins);
+			break;
+
+		case Instruction::OpCode_TableMemAccess:
+			tableAccess(ins);
+			break;
+
+		case Instruction::OpCode_TableArrIndex:
+			tableArrIndex(ins);
+			break;
 		
 		default:
 			break;
@@ -209,14 +224,8 @@ void VM::call(Instruction* ins)
 	else if (callee->Type() == Value::TYPE_CLOSURE)  {
 		Closure* cl = static_cast<Closure*>(callee);
 		_stackClosure->Push(cl);
+		cl->setNeedRetNum(ins->param_a.param.counter.counter2);
 		runCode(cl->getPrototype()->getInstructionSet());
-		int retNum = cl->getPrototype()->getRetNum();
-		int needNum = ins->param_a.param.counter.counter2;
-		int n = retNum - needNum;                         //ÐèÒªµ¯³ö¶àÉÙ¸ö·µ»ØÖµ
-		while (n > 0)  {     
-			_stack->popValue();
-			n--;
-		}
 	}
 }
 
@@ -227,7 +236,9 @@ void VM::enterClosure()
 
 void VM::quitClosure()
 {
-	getCurrentClosure()->clearClosure();
+	Closure* cl = getCurrentClosure();
+	cl->clearClosure();
+	cl->balanceStack();
 	_stackClosure->popValue();
 }
 
@@ -250,10 +261,10 @@ void VM::assignVals(int num_key, int num_val, int type)      //º¯Êýµ÷ÓÃ´«Èë²ÎÊýÊ
 	for (int i = 0; i < num_key; i++)  {
 		listKeys.push_front(_stack->popValue());
 	}
-	if (num_key > num_val)  {     //ÖµÉÙÓÚkey£¬ÓÐ¿ÉÄÜÊÇº¯ÊýÒýÆðµÄa£¬b =f()
+	if (num_key > num_val)  {                   //ÖµÉÙÓÚkey£¬ÓÐ¿ÉÄÜÊÇº¯ÊýÒýÆðµÄa£¬b =f()
 		num_val = _stack->Size();   
 	}
-	for (int i = 0; i < num_val; i++)    {
+	for (int i = 0; i < num_val; i++)    {      //Òª°ÑÊ£ÏÂµÄÈ«²¿µ¯³ö
 		Value* val = _stack->popValue();
 		listVals.push_front(val);
 	}
@@ -415,8 +426,8 @@ void VM::operateLogic(Instruction* ins)
 void VM::funcionRet(Instruction* ins)
 {
  	int num = ins->param_a.param.counter.counter1;
- 	Function* func = getCurrentClosure()->getPrototype();
-	func->setRetNum(num);
+	Closure* cl = getCurrentClosure();
+	cl->setRealRetNum(num);
 }
 
 
@@ -475,5 +486,59 @@ void VM::runBlockCode(Value* val)
 void VM::generateBlock(Instruction* ins)
 {
 	Value* val = ins->param_a.param.value;
+	_stack->Push(val);
+}
+
+void VM::tableDefine(Instruction* ins)
+{
+	Table* tab = new Table();
+	for (int i = 0; i < ins->param_a.param.counter.counter1; i++)  {
+		Value* key = _stack->popValue();
+		Value* val = _stack->popValue();
+		tab->Assign(key, val);
+	}
+	_stack->Push(tab);
+}
+
+void VM::tableArrIndex(Instruction* ins)
+{
+	int index = ins->param_a.param.array_index;
+	_stack->Push(new Number(index));
+}
+
+void VM::tableAccess(Instruction* ins)
+{
+	Value* tabName = _stack->popValue();
+	Value* member = _stack->popValue();
+	Value* tab = nullptr;
+	Value* val = nullptr;
+	std::string stFiled = ((String*)(ins->param_a.param.value))->Get();
+
+	if (tabName->Type() == Value::TYPE_TABLE)  {    //a.b.c ÄÇÃ´a.b¾ÍÊÇtable
+		val = ((Table*)tabName)->GetValue(member);
+	}
+	else if (tabName->Type() == Value::TYPE_NUMBER)  {
+		printf("attempt to index a number val (filed \'%s\') \n", stFiled.c_str());
+	}
+	else  {
+		if (getCurrentClosure()->findUpTables(tabName, &tab, nullptr) != -1)  {
+			if (tab->Type() != Value::TYPE_TABLE)  {
+				printf("%s is not a table\n", ((String*)tabName)->Get().c_str());
+			}
+			val = ((Table*)tab)->GetValue(member);
+		}
+		else  {
+			if (tabName->Type() == Value::TYPE_NUMBER)  {
+				printf("attempt to index a number val (filed \'%s\') \n", stFiled.c_str());
+			}
+			else if (tabName->Type() == Value::TYPE_NIL)  {
+				printf("attempt to index a nil val (filed \'%s\') \n", stFiled.c_str());
+			}
+		}
+	}
+	if (!val)  {       //a.b ÕÒ²»µ½aºÍb¶¼µÃÎª¿Õ
+		val = new Nil();
+	}
+	
 	_stack->Push(val);
 }

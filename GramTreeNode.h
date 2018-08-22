@@ -443,6 +443,8 @@ public:
 	}
 	virtual ~TableDefine(){}
 
+	void accept(Visitor* visitor, void* data);
+
 private:
 	TreeNodeList _fieldList;
 
@@ -463,6 +465,8 @@ public:
 	}
 	virtual ~TabMemberAccessor(){}
 
+	void accept(Visitor* visitor, void* data);
+
 };
 
 
@@ -472,38 +476,49 @@ public:
 	}
 	virtual ~TabIndexAccessor(){}
 
+	void accept(Visitor* visitor, void* data);
+
 };
 
-class TableIndexField : public SyntaxTreeNodeBase  {    //函数调用节点
+
+////t = {1,2,[3]=3, d=5} 1,2是TableArrayFiled,[3]=7是TableIndexField,d=5是TableNameField
+
+class TableIndexField : public SyntaxTreeNodeBase  {   
 public:
 	TableIndexField() : SyntaxTreeNodeBase()  {
 		_nodeKind = TABLE_INDEX_FIELD_K;
 	}
 	virtual ~TableIndexField(){}
+
+	void accept(Visitor* visitor, void* data);
 };
 
-class TableNameField : public SyntaxTreeNodeBase  {    //函数调用节点
+class TableNameField : public SyntaxTreeNodeBase  {    
 public:
 	TableNameField() : SyntaxTreeNodeBase()  {
 		_nodeKind = TABLE_NAME_FIELD_K;
 	}
 	virtual ~TableNameField(){}
+
+	void accept(Visitor* visitor, void* data);
 };
 
-class TableArrayFiled : public SyntaxTreeNodeBase  {    //函数调用节点
+class TableArrayFiled : public SyntaxTreeNodeBase  {    
 public:
 	TableArrayFiled() : SyntaxTreeNodeBase()  {
 		_nodeKind = TABLE_ARRAY_FIELD_K;
 	}
 	virtual ~TableArrayFiled(){}
+
+	void accept(Visitor* visitor, void* data);
 };
 
 
-class NormalCallFunciton : public SyntaxTreeNodeBase  {    //函数调用节点
+class NormalCallFunciton : public SyntaxTreeNodeBase  {    
 public:
 	NormalCallFunciton() : SyntaxTreeNodeBase()  {
 		_nodeKind = FUNCTION_CALL_K;
-		_param = nullptr;
+		_needRetNum = 1;      //一般需要的返回值是1个
 	}
 	virtual ~NormalCallFunciton(){}
 
@@ -512,7 +527,7 @@ public:
 
 	virtual void accept(Visitor* visitor, void* data);
 
-	void* _param;
+	int _needRetNum;   //需要返回值的个数
 };
 
 

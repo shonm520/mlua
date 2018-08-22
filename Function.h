@@ -37,9 +37,6 @@ public:
 	Function();
 	~Function();
 
-private:
-	int _retNum;     //返回值的数量
-
 public:
 	virtual std::string Name() const { return "function"; }
 	virtual int Type() const { return TYPE_FUNCTION; }
@@ -47,8 +44,6 @@ public:
 	virtual bool IsEqual(const Value *other) const  {  return this == other; }
 
 	Closure* generateClosure(State* s);
-	void setRetNum(int n) { _retNum = n; }
-	int getRetNum() { return _retNum; }
 
 };
 
@@ -68,17 +63,25 @@ public:
 
 	void setParentClosure(Closure* c);
 	Closure* getParentClosure()  { return _parentClosure; }
-
 	Table* getTopTable();
-	int findInNestTables(Value* key, Value** val);
 	int findUpTables(Value* key, Value** val, Table** table);
 	void initClosure();
 	void clearClosure();
+	void balanceStack();
 
 	void addBlockTable();
 	void removeBlockTable();
+
+	void setRealRetNum(int n) { _realRetNum = n; }
+	void setNeedRetNum(int n)  { _needRetNum = n; }
+	int getRealRetNum()  { return _realRetNum; }
+	int getNeedRetNum()  { return _needRetNum; }
+
 private:
-	
+	int findInNestTables(Value* key, Value** val);
+private:
+	int _needRetNum;      //函数执行后需要的返回值，例如f()为0个，f() + 1 就为1个
+	int _realRetNum;      //函数执行时确实得的返回值，这个也是动态的，比如在if语句中
 	State* _state;
 	Function* _prototype;
 	Closure* _parentClosure;
@@ -107,12 +110,3 @@ private:
 
 };
 
-
-/*class BlockCode : public Value  {
-public:
-	std::vector<Instruction*> _opcodes;
-	virtual std::string Name() const { return "block_code"; }
-	virtual int Type() const { return TYPE_FUNCTION; }
-	virtual std::size_t GetHash() const  { return std::hash<const BlockCode *>()(this); }
-	virtual bool IsEqual(const Value *other) const  { return this == other; }
-};*/

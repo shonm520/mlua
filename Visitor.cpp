@@ -71,3 +71,33 @@ void CompareStatement::accept(Visitor* visitor, void* data)
 {
 	visitor->visit(this, data);
 }
+
+void TableDefine::accept(Visitor* visitor, void* data)
+{
+	visitor->visit(this, data);
+}
+
+void TableNameField::accept(Visitor* visitor, void* data)
+{
+	visitor->visit(this, data);
+}
+
+void TableArrayFiled::accept(Visitor* visitor, void* data)
+{
+	visitor->visit(this, data);
+}
+
+void TableIndexField::accept(Visitor* visitor, void* data)
+{
+	visitor->visit(this, data);
+}
+
+void TabMemberAccessor::accept(Visitor* visitor, void* data)
+{
+	visitor->visit(this, data);
+}
+
+void TabIndexAccessor::accept(Visitor* visitor, void* data)
+{
+	visitor->visit(this, data);
+}

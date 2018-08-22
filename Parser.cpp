@@ -229,11 +229,21 @@ Parser::TreeNode * Parser::parse_var_name(bool bList)      //解析变量名,有带表名
 			pNode->setNextNode(node_rest);
 		}
 		else  {
-			pNode = new IdentifierNode(tableName_or_varName);
+			if (tableName_or_varName.kind == Scanner::INT)  {
+				pNode = new Terminator(tableName_or_varName, Terminator::TERM_NUMBER);
+			}
+			else  {
+				pNode = new IdentifierNode(tableName_or_varName);
+			}
 		}
 	}
 	else   {
-		pNode = new IdentifierNode(tableName_or_varName);
+		if (tableName_or_varName.kind == Scanner::INT)  {
+			pNode = new Terminator(tableName_or_varName, Terminator::TERM_NUMBER);
+		}
+		else  {
+			pNode = new IdentifierNode(tableName_or_varName);
+		}
 	}
 	return pNode;
 }
@@ -252,10 +262,17 @@ Parser::TreeNode *Parser::parse_access_table_Field(SyntaxTreeNodeBase* table_pre
 			table_prefix = tab_sum;
 		}
 		else  {
-			tab_sum = new TableIndexField();
+			tab_sum = new TabIndexAccessor();
 			tab_sum->addChild(table_prefix, 0);
 			Scanner::Token table_field = getToken();
-			tab_sum->addChild(new IdentifierNode(table_field), 1);
+			TreeNode* filed = nullptr;
+			if (table_field.kind == Scanner::INT)  {
+				filed = new Terminator(table_field, Terminator::TERM_NUMBER);
+			}
+			else if (table_field.kind == Scanner::STRING)  {
+				filed = new Terminator(table_field, Terminator::TERM_STRING);
+			}
+			tab_sum->addChild( filed, 1);
 			table_prefix = tab_sum;
 			eatExpectedToken(Token(Scanner::SYMBOL, "]"));
 		}
@@ -569,7 +586,6 @@ Parser::TreeNode *Parser::parse_function_statement(bool anony, bool global)
 	}
 	eatExpectedToken(Token(Scanner::Token_RightRoundBracket));
 	SyntaxTreeNodeBase* fct_body = parse_block();
-	//eatExpectedToken(Token(Scanner::Token_End));
 
 	FunctionStatement* fct_stm = new FunctionStatement();
 	fct_stm->addChild(fct_name, FunctionStatement::EFuncName);
@@ -818,13 +834,13 @@ Parser::TreeNode *Parser::parse_build_table_indexField()
 	TableIndexField* assign_node = new TableIndexField();
 	assert(eatExpectedToken(Token(Scanner::Token_LeftSquareBracket)));
 	TreeNode* node_index = parse_var_name(false);
+	assert(eatExpectedToken(Token(Scanner::Token_RightSquareBracket)));
 	assert(eatExpectedToken(Token(Scanner::Token_Assign)));
 	TreeNode* node_value = parse_expression();
 
 	assign_node->addChild(node_index, AssignStatement::AssignLetf);
 	assign_node->addChild(node_value, AssignStatement::AssignRight);
 
-	assert(eatExpectedToken(Token(Scanner::Token_RightSquareBracket)));
 	return assign_node;
 }
 

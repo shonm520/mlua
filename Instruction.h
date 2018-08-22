@@ -117,6 +117,9 @@ struct Instruction
 		OpCode_SetTableArrayValue,
 
 		OpCode_If,
+		OpCode_TableDefine,
+		OpCode_TableArrIndex,
+		OpCode_TableMemAccess,
 	};
 	OpCode op_code;
 	InstructionParam param_a;

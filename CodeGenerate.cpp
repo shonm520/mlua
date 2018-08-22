@@ -146,6 +146,9 @@ void CodeGenerateVisitor::visit(BlockNode* block, void* data)
 {
 	auto stm = block->getChildByIndex(0);
 	for (; stm != nullptr; stm = stm->getNextNode())  {
+		if (stm->getNodeKind() == SyntaxTreeNodeBase::FUNCTION_CALL_K)  {    //函数调用作为单独的表达式时，肯定是不需要返回值的
+			((NormalCallFunciton*)stm)->_needRetNum = 0;
+		}
 		stm->accept(this, data);
 	}
 }
@@ -184,7 +187,7 @@ void CodeGenerateVisitor::visit(LocalNameListStatement* stm, void* data)
 				fd = n1 - n2 + 1;
 			}
 			if (n > n1) fd = 0;
-			((NormalCallFunciton*)exp)->_param = &fd;
+			((NormalCallFunciton*)exp)->_needRetNum = fd;
 		}
 		exp->accept(this, writer);
 	}
@@ -217,7 +220,7 @@ void CodeGenerateVisitor::visit(AssignStatement* stm, void* data)
 				fd = n1 - n2 + 1;
 			}
 			if (n > n1) fd = 0;
-			((NormalCallFunciton*)exp)->_param = &fd;
+			((NormalCallFunciton*)exp)->_needRetNum = fd;
 		}
 		exp->accept(this, writer);
 	}
@@ -250,14 +253,7 @@ void CodeGenerateVisitor::visit(NormalCallFunciton* callFun, void* data)
 	Instruction *ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_Call;
 	ins->param_a.param.counter.counter1 = numParam;
-
-	if (callFun->_param)  {
-		int num = static_cast<FuncVarData*>(callFun->_param)->num;
-		ins->param_a.param.counter.counter2 = num;
-	}
-	else  {
-		ins->param_a.param.counter.counter2 = 0;
-	}
+	ins->param_a.param.counter.counter2 = callFun->_needRetNum;
 }
 
 
@@ -268,7 +264,7 @@ void CodeGenerateVisitor::generateNodeListCode(SyntaxTreeNodeBase* node_list, Co
 		writer->paramRW = &ed;
 		if (exp->getNodeKind() == SyntaxTreeNodeBase::FUNCTION_CALL_K)  {
 			FuncVarData fd = { 1 };
-			((NormalCallFunciton*)exp)->_param = &fd;
+			((NormalCallFunciton*)exp)->_needRetNum = 1;
 		}
 		exp->accept(this, writer);
 	}
@@ -282,11 +278,11 @@ void CodeGenerateVisitor::visit(OperateStatement* ops, void* data)
 
 	if (term1->getNodeKind() == SyntaxTreeNodeBase::FUNCTION_CALL_K)  {
 		FuncVarData_ fd = { 1 };
-		((NormalCallFunciton*)term1)->_param = &fd;
+		((NormalCallFunciton*)term1)->_needRetNum = 1;
 	}
 	if (term2->getNodeKind() == SyntaxTreeNodeBase::FUNCTION_CALL_K)  {
 		FuncVarData_ fd = { 1 };
-		((NormalCallFunciton*)term2)->_param = &fd;
+		((NormalCallFunciton*)term2)->_needRetNum = 1;
 	}
 
 	CodeWrite* writer = static_cast<CodeWrite*>(data);
@@ -377,4 +373,92 @@ void CodeGenerateVisitor::visit(CompareStatement* cmpSmt, void* data)
 			ins->op_code = (Instruction::OpCode)(Instruction::OpCode_Less + i);
 		}
 	}
+}
+
+void CodeGenerateVisitor::visit(TableDefine* tbdSmt, void* data)
+{
+	CodeWrite* writer = static_cast<CodeWrite*>(data);
+	auto filedList = tbdSmt->getField();
+	int num = 0;
+	std::vector<TreeNode*> vtNodes;
+	std::vector<TreeNode*> vtArrayNodes;
+	for (auto exp = filedList; exp != nullptr; exp = exp->getNextNode())  {
+		if (exp->getNodeKind() == SyntaxTreeNodeBase::TABLE_ARRAY_FIELD_K)  {
+			vtArrayNodes.push_back(exp);
+		}
+		else  {  
+			vtNodes.push_back(exp);      //TableNameField, TableIndexField
+		}
+		num++;
+	}
+	int arrNum = vtArrayNodes.size();        //让TableArrayFiled先执行，因为他要覆盖[]
+	for (auto it = vtArrayNodes.rbegin(); it != vtArrayNodes.rend(); ++it)  {      //arr index还是从后边解析吧，因为从栈上取出的方向相反
+		TableArrayIndex ti = { arrNum-- };
+		writer->paramArrInd = &ti;
+		(*it)->accept(this, data);
+	}
+
+	for (auto it = vtNodes.rbegin(); it != vtNodes.rend(); ++it)  {      //arr index还是从后边解析吧，因为从栈上取出的方向相反
+		(*it)->accept(this, data);
+	}
+
+	Instruction* ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_TableDefine;
+	ins->param_a.param.counter.counter1 = num;
+}
+
+void CodeGenerateVisitor::visit(TableNameField* tnfSmt, void* data)   //t = {1,2,[3]=3, d=5} 1,2是TableArrayFiled,[3]=7是TableIndexField,d=5是TableNameField
+{
+	auto key = tnfSmt->getChildByIndex(0);
+	auto val = tnfSmt->getChildByIndex(1);
+
+	CodeWrite* writer = static_cast<CodeWrite*>(data);
+	ExpVarData ed = { ExpVarData::VAR_GET };
+	writer->paramRW = &ed;
+	val->accept(this, data);
+
+	ed.type = ExpVarData::VAR_SET;
+	writer->paramRW = &ed;
+	key->accept(this, data);
+}
+
+void CodeGenerateVisitor::visit(TableArrayFiled* taSmt, void* data)
+{
+	CodeWrite* writer = static_cast<CodeWrite*>(data);
+	int index = ((TableArrayIndex*)writer->paramArrInd)->num;
+	ExpVarData ed = { ExpVarData::VAR_GET };
+	writer->paramRW = &ed;
+	taSmt->getChildByIndex(0)->accept(this, data);
+	Instruction* ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_TableArrIndex;
+	ins->param_a.param.array_index = index;
+}
+
+void CodeGenerateVisitor::visit(TableIndexField* tifSmt, void* data)
+{
+	visit((TableNameField*)tifSmt, data);
+}
+
+void CodeGenerateVisitor::visit(TabMemberAccessor* tmsSmt, void* data)
+{
+	auto tab = tmsSmt->getChildByIndex(0);
+	auto member = tmsSmt->getChildByIndex(1);
+	
+	CodeWrite* writer = static_cast<CodeWrite*>(data);
+	ExpVarData ed = { ExpVarData::VAR_SET };      //读取表的key，val时，必须是set,将表名压入栈中
+	writer->paramRW = &ed;
+	member->accept(this, data);
+
+	ed.type = ExpVarData::VAR_SET;
+	writer->paramRW = &ed;
+	tab->accept(this, data);
+
+	Instruction* ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_TableMemAccess;
+	ins->param_a.param.value = new String(member->getLexeme());
+}
+
+void CodeGenerateVisitor::visit(TabIndexAccessor* tiSmt, void* data)
+{
+	return visit((TabMemberAccessor*)tiSmt, data);
 }

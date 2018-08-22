@@ -53,5 +53,9 @@ private:
 
 	void runBlockCode(Value* val);
 
+	void tableDefine(Instruction* ins);
+	void tableAccess(Instruction* ins);
+	void tableArrIndex(Instruction* ins);
+
 };
 
