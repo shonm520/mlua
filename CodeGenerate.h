@@ -49,6 +49,7 @@ public:
 	void visit(TabIndexAccessor* tiSmt, void* data);
 	void visit(TableArrayFiled* taSmt, void* data);
 	void visit(TableIndexField* tifSmt, void* data);
+	void visit(ForStatement* forSmt, void* data);
 
 	void generateChunkCode(ChunkNode*, CodeWrite*);
 	void generateFuncCode(bool bGlobal, SyntaxTreeNodeBase* name, SyntaxTreeNodeBase* params, SyntaxTreeNodeBase* body, CodeWrite*);

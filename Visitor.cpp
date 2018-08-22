@@ -101,3 +101,8 @@ void TabIndexAccessor::accept(Visitor* visitor, void* data)
 {
 	visitor->visit(this, data);
 }
+
+void ForStatement::accept(Visitor* visitor, void* data)
+{
+	visitor->visit(this, data);
+}

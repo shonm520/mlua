@@ -66,7 +66,8 @@ public:
 		TABLE_ARRAY_FIELD_K,
 		FUNCTION_STM_K,
 		BLOCK_K,
-		CHUNK_K
+		CHUNK_K,
+		FOR_K
 	};
 
 	static string Kind2Des(int nK)  {
@@ -564,4 +565,23 @@ public:
 	};
 
 	virtual void accept(Visitor* visitor, void* data);
+};
+
+
+class ForStatement : public SyntaxTreeNodeBase
+{
+public:
+
+	ForStatement() : SyntaxTreeNodeBase()  {
+		_nodeKind = SyntaxTreeNodeBase::FOR_K;
+	}
+	void accept(Visitor* visitor, void* data);
+
+	enum eFor  {
+		EStart,
+		EEnd,
+		EStep,
+		EBlock
+	};
+private:
 };

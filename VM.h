@@ -47,6 +47,7 @@ private:
 	Closure* getCurrentClosure();
 
 	void ifCompare(Instruction* ins);
+	void forCompare(Instruction* ins);
 	void enterBlock(Instruction* ins);
 	void quitBlock(Instruction* ins);
 

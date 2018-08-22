@@ -99,10 +99,13 @@ string Scanner::detailType2Lexeme(TokenType_Detail detail)
 	switch (detail)
 	{
 	case Scanner::Token_And:
+		lexeme = "and";
 		break;
 	case Scanner::Token_Break:
+		lexeme = "break";
 		break;
 	case Scanner::Token_Do:
+		lexeme = "do";
 		break;
 	case Scanner::Token_Else:
 		lexeme = "else";
@@ -116,6 +119,7 @@ string Scanner::detailType2Lexeme(TokenType_Detail detail)
 	case Scanner::Token_False:
 		break;
 	case Scanner::Token_For:
+		lexeme = "for";
 		break;
 	case Scanner::Token_Function:
 		lexeme = "function";
@@ -129,12 +133,16 @@ string Scanner::detailType2Lexeme(TokenType_Detail detail)
 		lexeme = "local";
 		break;
 	case Scanner::Token_Nil:
+		lexeme = "nil";
 		break;
 	case Scanner::Token_Not:
+		lexeme = "not";
 		break;
 	case Scanner::Token_Or:
+		lexeme = "or";
 		break;
 	case Scanner::Token_Repeat:
+		lexeme = "repeat";
 		break;
 	case Scanner::Token_Return:
 		lexeme = "return";
@@ -143,10 +151,13 @@ string Scanner::detailType2Lexeme(TokenType_Detail detail)
 		lexeme = "then";
 		break;
 	case Scanner::Token_True:
+		lexeme = "true";
 		break;
 	case Scanner::Token_Until:
+		lexeme = "until";
 		break;
 	case Scanner::Token_While:
+		lexeme = "while";
 		break;
 	case Scanner::Token_Id:
 		break;
@@ -155,12 +166,16 @@ string Scanner::detailType2Lexeme(TokenType_Detail detail)
 	case Scanner::Token_Number:
 		break;
 	case Scanner::Token_Equal:
+		lexeme = "==";
 		break;
 	case Scanner::Token_NotEqual:
+		lexeme = "~=";
 		break;
 	case Scanner::Token_LessEqual:
+		lexeme = "<=";
 		break;
 	case Scanner::Token_GreaterEqual:
+		lexeme = ">=";
 		break;
 	case Scanner::Token_Concat:
 		break;

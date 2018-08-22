@@ -156,6 +156,10 @@ void VM::runCode(InstructionSet* insSet)
 			ifCompare(ins);
 			break;
 
+		case Instruction::OpCode_For:
+			forCompare(ins);
+			break;
+
 		case Instruction::OpCode_Less:
 		case Instruction::OpCode_Greater:
 		case Instruction::OpCode_LessEqual:
@@ -454,11 +458,10 @@ void VM::funcionRet(Instruction* ins)
 void VM::ifCompare(Instruction* ins)
 {
 	Value* logic = _stack->popValue();
-	
 	Value* leftBlock = _stack->popValue();
 
 	Value* rightBlock = nullptr;
-	if (ins->param_a.param.counter.counter1 > 1)  {
+	if (ins->param_a.param.counter.counter1 > 0)  {
 		rightBlock = _stack->popValue();
 	}
 	bool runLeft = true;                //除了nil和false其他全为true
@@ -470,7 +473,6 @@ void VM::ifCompare(Instruction* ins)
 			runLeft = ((BoolValue*)logic)->getLogicVal();
 		}
 	}
-	
 	if (runLeft)  {
 		runBlockCode(leftBlock);
 	}
@@ -481,24 +483,44 @@ void VM::ifCompare(Instruction* ins)
 	}
 }
 
+void VM::forCompare(Instruction* ins)
+{
+	int iStart = ((Number*)_stack->popValue())->GetInteger();
+	int iEnd = ((Number*)_stack->popValue())->GetInteger();
+	int iStep = 1;
+	if (ins->param_a.param.counter.counter1 > 0)  {
+		iStep = ((Number*)_stack->popValue())->GetInteger();
+	}
+	InstructionValue* block = (InstructionValue*)_stack->popValue();
+	
+	if (iStep > 0)  {
+		for (int i = iStart; i <= iEnd; i += iStep)  {
+			runBlockCode(block);
+		}
+	}
+	else if (iStep < 0) {
+		for (int i = iStart; i >= iEnd; i += iStep)  {
+			runBlockCode(block);
+		}
+	}
+	
+}
 
 void VM::enterBlock(Instruction* ins)
 {
-
+	getCurrentClosure()->addBlockTable();
 }
 
 void VM::quitBlock(Instruction* ins)
 {
-
+	getCurrentClosure()->removeBlockTable();
 }
 
 void VM::runBlockCode(Value* val)
 {
 	if (val)  {
 		assert(val->Type() == Value::TYPE_INSTRUCTVAL);
-		getCurrentClosure()->addBlockTable();
 		runCode(((InstructionValue*)val)->getInstructionSet());
-		getCurrentClosure()->removeBlockTable();
 	}
 }
 

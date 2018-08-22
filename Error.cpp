@@ -14,7 +14,7 @@ bool hasError()
 void syntaxError(string currentParserFilename, string expected, Scanner::Token token)
 {
     errorNum++;
-    cerr << "Error in class " << currentParserFilename << " in line " << token.row
+    cerr << "Error in file " << currentParserFilename << " in line " << token.row
         << ": expect " << "\'" << expected << "\'" << ", but got " << "\'" << token.lexeme << "\'" << "\n";
 }
 
@@ -29,7 +29,7 @@ void error1(string currentParserFilename)
 void error2(string currentClass, int row, string type, string name)
 {
     errorNum++;
-    cerr << "Error in class " << currentClass << " in line " << row
+    cerr << "Error in file " << currentClass << " in line " << row
         << ": redeclaration of '" << type << " " << name << "'" << endl;
 }
 
@@ -37,7 +37,7 @@ void error2(string currentClass, int row, string type, string name)
 void error3(string currentClass, int row, string type, string name)
 {
     errorNum++;
-    cerr << "Error in class " << currentClass << " in line " << row
+    cerr << "Error in file " << currentClass << " in line " << row
         << ": redeclaration of '" << type << " " << name << "()" << endl;
 }
 
@@ -45,7 +45,7 @@ void error3(string currentClass, int row, string type, string name)
 void error4(string currentClassName, int row, string type)
 {
     errorNum++;
-    cerr << "Error in class " << currentClassName << " in line " << row
+    cerr << "Error in file " << currentClassName << " in line " << row
         << ": '" << type << "' not declaraed" << endl;
 }
 
@@ -53,35 +53,35 @@ void error4(string currentClassName, int row, string type)
 void error5(string currentClassName, int row, string varName)
 {
     errorNum++;
-    cerr << "Error in class " << currentClassName << " in line " << row
+    cerr << "Error in file " << currentClassName << " in line " << row
         << ": '" << varName << "' does not declared in this scope" << endl;
 }
 
 void error6(string currentClassName, int row, string type)
 {
     errorNum++;
-    cerr << "Error in class " << currentClassName << " in line " << row
+    cerr << "Error in file " << currentClassName << " in line " << row
         << ": " << type << " does not an Array type" << endl;
 }
 
 void error7(string currentClassName, string callerName, int row, string functionName)
 {
     errorNum++;
-    cerr << "Error in class " << currentClassName << " in line " << row
+    cerr << "Error in file " << currentClassName << " in line " << row
         << ": class " << callerName << " haven't a member function '" << functionName << "()'" << endl;
 }
 
 void error8(string currentClassName, int row, string functionName)
 {
     errorNum++;
-    cerr << "Error in class " << currentClassName << " in line " << row
+    cerr << "Error in file " << currentClassName << " in line " << row
         << ": subroutine " << functionName << " called as a method from within a function" << endl;
 }
 
 void error9(string currentClassName, string callerName, int row, string functionName)
 {
     errorNum++;
-    cerr << "Error in class " << currentClassName << " in line " << row
+    cerr << "Error in file " << currentClassName << " in line " << row
         << ": '" << functionName << "' is not a function in class " << callerName << endl;
 }
 
@@ -89,7 +89,7 @@ void error9(string currentClassName, string callerName, int row, string function
 void error10(string currentClassName, string callerName, int row, string functionName)
 {
     errorNum++;
-    cerr << "Error in class " << currentClassName << " in line " << row
+    cerr << "Error in file " << currentClassName << " in line " << row
         << ": '" << functionName << "' is not a method in class " << callerName << endl;
 }
 
@@ -97,7 +97,7 @@ void error10(string currentClassName, string callerName, int row, string functio
 void error11(string currentClassName, string type, int row)
 {
     errorNum++;
-    cerr << "Error in class " << currentClassName << " in line " << row
+    cerr << "Error in file " << currentClassName << " in line " << row
         << ": return-statement with no value, in function returning '" << type << "'" << endl;
 }
 
@@ -105,7 +105,7 @@ void error11(string currentClassName, string type, int row)
 void error12(string currentClassName, int row)
 {
     errorNum++;
-    cerr << "Error in class " << currentClassName << " in line " << row
+    cerr << "Error in file " << currentClassName << " in line " << row
         << ": return-statement with a value, in function returning void" << endl;
 }
 
@@ -113,7 +113,7 @@ void error12(string currentClassName, int row)
 void error13(string currentClassName, int row)
 {
     errorNum++;
-    cerr << "Error in class " << currentClassName << " in line " << row
+    cerr << "Error in file " << currentClassName << " in line " << row
         << ": The return type of a constructor must be of the class type" << endl;
 }
 
@@ -121,7 +121,7 @@ void error13(string currentClassName, int row)
 void error14(string currentClassName, string functionName, int row)
 {
     errorNum++;
-    cerr << "Error in class " << currentClassName << " in line " << row
+    cerr << "Error in file " << currentClassName << " in line " << row
         << ": too few arguments to function " << functionName << "()" << endl;
 }
 
@@ -129,7 +129,7 @@ void error14(string currentClassName, string functionName, int row)
 void error15(string currentClassName, string functionName, int row)
 {
     errorNum++;
-    cerr << "Error in class " << currentClassName << " in line " << row
+    cerr << "Error in file " << currentClassName << " in line " << row
         << ": too many arguments to function " << functionName << endl;
 }
 
@@ -142,38 +142,38 @@ void error16()
 void error17()
 {
     errorNum++;
-    cerr << "Error in class Main: main function does not exsit!" << endl;
+    cerr << "Error in file Main: main function does not exsit!" << endl;
 }
 
 void error18()
 {
     errorNum++;
-    cerr << "Error in class Main: the kind of subroutine main must be a function" << endl;
+    cerr << "Error in file Main: the kind of subroutine main must be a function" << endl;
 }
 
 void error19()
 {
     errorNum++;
-    cerr << "Error in class Main: the type of subroutine main must be a void" << endl;
+    cerr << "Error in file Main: the type of subroutine main must be a void" << endl;
 }
 
 void error20()
 {
     errorNum++;
-    cerr << "Error in class Main: the argument size of subroutine main must be null" << endl;
+    cerr << "Error in file Main: the argument size of subroutine main must be null" << endl;
 }
 
 void error21(string currentClassName, string callerName, int row, string functionName)
 {
 	errorNum++;
-	cerr << "Error in class " << currentClassName << " in line " << row
+	cerr << "Error in file " << currentClassName << " in line " << row
 		<<", function(or method) "<< "\'" << functionName << "\' " << "is not defined" << endl;
 }
 
 // void error22(SyntaxTreeNodeBase* node, string msg)
 // {
 // 	errorNum++;
-// 	cerr << "Error in class " << node->getClassName() << " in line " << node->getRow()
+// 	cerr << "Error in file " << node->getClassName() << " in line " << node->getRow()
 // 		<< ", in function(or method) " << "\'" 
 // 		<<  node->getCurSubroutineBodyNode()->getParentNode()->getName() 
 // 		<< "\', " << "½Úµã " << node->getLexeme() << "," << msg << endl;

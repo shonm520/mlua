@@ -92,7 +92,6 @@ void CodeGenerateVisitor::generateClosureCode(InstructionSet* func, CodeWrite* w
 
 	Function* valInsSet = new Function();
 	valInsSet->setInstructionSet(func);
-
 	ins->param_a.param.value = valInsSet;
 }
 
@@ -344,7 +343,7 @@ void CodeGenerateVisitor::visit(IfStatement* ifSmt, void* data)
 
 	ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_If;
-	ins->param_a.param.counter.counter1 = (ifSmtRight == 0) ? 1 : 2;
+	ins->param_a.param.counter.counter1 = (ifSmtRight == 0) ? 0 : 1;
 }
 
 void CodeGenerateVisitor::visit(CompareStatement* cmpSmt, void* data)
@@ -457,4 +456,42 @@ void CodeGenerateVisitor::visit(TabMemberAccessor* tmsSmt, void* data)
 void CodeGenerateVisitor::visit(TabIndexAccessor* tiSmt, void* data)
 {
 	return visit((TabMemberAccessor*)tiSmt, data);
+}
+
+void CodeGenerateVisitor::visit(ForStatement* forSmt, void* data)
+{
+	CodeWrite* writer = static_cast<CodeWrite*>(data);
+
+	auto start = forSmt->getChildByIndex(ForStatement::EStart);
+	auto end = forSmt->getChildByIndex(ForStatement::EEnd);
+	auto step = forSmt->getChildByIndex(ForStatement::EStep);
+	auto block = forSmt->getChildByIndex(ForStatement::EBlock);
+
+	Instruction* ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_EnterBlock;
+
+	CodeWrite for_writer;
+	block->accept(this, &for_writer);
+	ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_GenerateBlock;
+	ins->param_a.type = InstructionParam::InstructionParamType_Value;
+	InstructionValue* valInsSet = for_writer.fetchInstructionVal();
+	ins->param_a.param.value = valInsSet;
+
+	if (step) step->accept(this, data);
+	if (end) end->accept(this, data);
+	if (start)   {
+		start->accept(this, data);
+
+		ExpVarData ed = { ExpVarData::VAR_GET };
+		writer->paramRW = &ed;
+		start->getChildByIndex(0)->accept(this, data);   //for循环变量名仍需压栈
+	}
+
+	ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_For;
+	ins->param_a.param.counter.counter1 = (step == 0) ? 0 : 1;
+
+	ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_QuitBlock;
 }

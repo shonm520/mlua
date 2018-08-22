@@ -93,13 +93,7 @@ private:
 
     Scanner::Token getToken();                          // 从缓冲区中取出一个token
     void ungetToken();                        // 把上一次取出的token放入到缓冲区中
-	//bool eatExpectedToken(string expected, Scanner::Token* pToken = nullptr);
-	//bool eatExpectedToken(Scanner::TokenType type, Scanner::Token* pToken = nullptr);
 	bool eatExpectedToken(Token token, Scanner::Token* pToken = nullptr);
-
-	//bool eatPeekedToken(string expected, Scanner::Token* pToken = nullptr);
-	//bool eatPeekedToken(Scanner::TokenType type, Scanner::Token* pToken = nullptr);
-
 	Scanner::Token peekToken(bool reset);
 
 	CirQueue _cirQueue;
@@ -107,19 +101,14 @@ private:
 
     TreeNode * parse_chunk_list();
     TreeNode * parse_chunk();
-    TreeNode * parse_class_var_dec_list();
-    TreeNode * parse_class_var_dec();
-    TreeNode * parse_var_name_list();
+
     TreeNode * parse_type();
-    TreeNode * parse_subroutine_dec_list();
-    TreeNode * parse_subroutin_dec();
+
     TreeNode * parse_params();
     TreeNode * parse_param_list();
     TreeNode * parse_param();
-    TreeNode * parse_subroutine_body();
-	TreeNode * parse_var_dec_list(TreeNodeList& statementNodeList);
 	TreeNode * parse_var_name(bool bList);
-	TreeNode * parse_var_dec(TreeNodeList& statementNodeList);
+	TreeNode * parse_var_name_list();
 	TreeNode * parse_statements();
 	TreeNode * parse_assign_statement_lua(SyntaxTreeNodeBase* left_vals);
     TreeNode * parse_statement();
@@ -152,6 +141,8 @@ private:
 	TreeNode * parse_block();
 	TreeNode * parse_local_statement();
 	TreeNode * parse_local_nameList();
+
+	TreeNode * parse_for_statement();
 
     void printSyntaxTree(TreeNode *tree, int dep = 1);
 public:

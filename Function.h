@@ -73,8 +73,8 @@ public:
 	void removeBlockTable();
 
 	void setRealRetNum(int n) { _realRetNum = n; }
-	void setNeedRetNum(int n)  { _needRetNum = n; }
 	int getRealRetNum()  { return _realRetNum; }
+	void setNeedRetNum(int n)  { _needRetNum = n; }
 	int getNeedRetNum()  { return _needRetNum; }
 	void setRealParamNum(int n)  { _realParamNum = n; }
 	int getRealParamNum()  { return _realParamNum; }
@@ -82,9 +82,9 @@ public:
 private:
 	int findInNestTables(Value* key, Value** val);
 private:
-	int _needRetNum;      //函数执行后需要的返回值，例如f()为0个，f() + 1 就为1个
-	int _realRetNum;      //函数执行时确实得的返回值，这个也是动态的，比如在if语句中
-	int _realParamNum;    //函数执行时实际传入的参数
+	int _needRetNum;      //函数调用者需要的返回值个数，例如f()为0个，f() + 1 就为1个
+	int _realRetNum;      //函数执行时确定的返回值个数，这个也是动态的，比如在if语句中
+	int _realParamNum;    //函数执行时实际传入的参数个数
 	State* _state;
 	Function* _prototype;
 	Closure* _parentClosure;
