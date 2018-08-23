@@ -97,6 +97,20 @@ void Closure::removeBlockTable()
 	_nest_tables.pop_back();
 }
 
+Closure* Closure::clone()
+{
+	Closure* cl = new Closure(_state);
+	cl->_needRetNum = _needRetNum;
+	cl->_realParamNum = _realRetNum;
+	cl->_realRetNum = _realRetNum;
+	cl->_parentClosure = _parentClosure;
+	cl->_prototype = _prototype;
+	if (_upTables)  {
+		cl->_upTables = _upTables->clone();
+	}
+	return cl;
+}
+
 Table* Closure::getTopTable()
 {
 	return getLevelTable(_nest_tables.size() - 1);

@@ -82,6 +82,8 @@ public:
 	void clearClosure();
 	void balanceStack();
 
+	Closure* clone();
+
 	void addBlockTable();
 	void removeBlockTable();
 

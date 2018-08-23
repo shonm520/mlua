@@ -241,7 +241,7 @@ void VM::call(Instruction* ins)
 		((NativeFunc*)callee)->doCall(_state, (void*)paramNum);
 	}
 	else if (callee->Type() == Value::TYPE_CLOSURE)  {
-		Closure* cl = static_cast<Closure*>(callee);
+		Closure* cl = static_cast<Closure*>(callee)->clone();    //这里必须克隆，，因为有递归调用函数
 		_stackClosure->Push(cl);
 		cl->setRealParamNum(paramNum);
 		cl->setNeedRetNum(ins->param_a.param.counter.counter2);
