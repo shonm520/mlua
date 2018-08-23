@@ -336,7 +336,6 @@ Parser::TreeNode *Parser::parse_statements()    //½âÎöÒ»¸ö¿éÀïµÄËùÓĞÓï¾ä,°üÀ¨ÉùÃ
 	}
 	else if (token.compare(Scanner::Token_For))  {
 		return parse_for_statement();
-
 	}
 	else  {
 		if (token.compare(Scanner::Token_End))  {            //¿é½áÊø
@@ -346,6 +345,10 @@ Parser::TreeNode *Parser::parse_statements()    //½âÎöÒ»¸ö¿éÀïµÄËùÓĞÓï¾ä,°üÀ¨ÉùÃ
 		else if (token.compare(Scanner::Token_Else) ||       //ifµÄÒ»¸ö·ÖÖ§½áÊø
 				 token.compare(Scanner::Token_ElseIf))  {
 			return nullptr;
+		}
+		else if (token.compare(Scanner::Token_Break))  {
+			getToken();
+			return new BreakStatement();
 		}
 		if (token.kind != Scanner::ID)  {
 			syntaxError(_strCurParserFileName, "a Identifier", token);

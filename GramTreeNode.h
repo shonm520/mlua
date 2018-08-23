@@ -571,7 +571,6 @@ public:
 class ForStatement : public SyntaxTreeNodeBase
 {
 public:
-
 	ForStatement() : SyntaxTreeNodeBase()  {
 		_nodeKind = SyntaxTreeNodeBase::FOR_K;
 	}
@@ -584,4 +583,13 @@ public:
 		EBlock
 	};
 private:
+};
+
+class BreakStatement : public SyntaxTreeNodeBase
+{
+public:
+	BreakStatement() :SyntaxTreeNodeBase()  {
+		
+	}
+	void accept(Visitor* visitor, void* data);
 };

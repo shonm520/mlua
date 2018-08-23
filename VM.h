@@ -4,6 +4,7 @@
 
 class State;
 class Stack;
+class InstructionValue;
 
 class VM
 {
@@ -16,11 +17,13 @@ private:
 	Stack* _stack;
 	Stack* _stackClosure;
 
+	InstructionValue* _curInsVal;
+
 public:
 	void execute();
 	void execute_frame();
 	typedef std::vector<Instruction*> VtIns;
-	void runCode(InstructionSet*);
+	int runCode(InstructionValue*);
 
 private:
 	void generateClosure(Instruction* ins);
@@ -48,6 +51,7 @@ private:
 
 	void ifCompare(Instruction* ins);
 	void forCompare(Instruction* ins);
+	void breakFor(Instruction* ins);
 	void enterBlock(Instruction* ins);
 	void quitBlock(Instruction* ins);
 

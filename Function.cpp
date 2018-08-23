@@ -6,11 +6,19 @@
 
 
 InstructionValue::InstructionValue():
-	_insSet(nullptr)
+_parentInsVal(nullptr), _insSet(nullptr),
+_hasFor(false), _breaked(false)
 {
 
 }
 
+
+void InstructionValue::clearInsSet()
+{
+	if (_insSet)  {
+		_insSet->clearInstructions();
+	}
+}
 
 Function::Function()
 {
@@ -91,11 +99,15 @@ void Closure::removeBlockTable()
 
 Table* Closure::getTopTable()
 {
-	if (_nest_tables.size() == 0)  {
+	return getLevelTable(_nest_tables.size() - 1);
+}
+
+Table* Closure::getLevelTable(unsigned int i)
+{
+	if (_nest_tables.size() == 0  || i >= _nest_tables.size())  {
 		return nullptr;
 	}
-	Table* top = _nest_tables.back();
-	return top;
+	return _nest_tables[i];
 }
 
 void Closure::setParentClosure(Closure* c)
@@ -113,17 +125,14 @@ void Closure::setParentClosure(Closure* c)
 int Closure::findInNestTables(Value* key, Value** val)
 {
 	int num = _nest_tables.size();
-	int level = 0;
 	Value* temp = nullptr;
 	for (int i = num - 1; i >= 0; i--)  {
 		temp = _nest_tables[i]->GetValue(key);
 		if (temp)  {
 			if (val) *val = temp;
-			return level + 1;
+			return i;
 		}
-		level++;
 	}
-
 	return -1;
 }
 
@@ -131,9 +140,9 @@ int Closure::findUpTables(Value* key, Value** val, Table** tab)
 {
 	Closure* cl = this;
 	while (cl)  {
-		int ret = cl->findInNestTables(key, val);
-		if (ret != -1)  {  //在当前闭包中找到
-			if (tab) *tab = cl->getTopTable();
+		int level = cl->findInNestTables(key, val);
+		if (level != -1)  {  //在当前闭包中找到
+			if (tab) *tab = cl->getLevelTable(level);
 			return 1;
 		}
 		cl = cl->_parentClosure;

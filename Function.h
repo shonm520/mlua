@@ -13,6 +13,7 @@ class InstructionValue : public Value
 {
 public:
 	InstructionValue();
+	InstructionValue(InstructionSet* is) : InstructionValue() { _insSet = is; }
 
 	virtual std::string Name() const { return "instruction_val"; }
 	virtual int Type() const { return TYPE_INSTRUCTVAL; }
@@ -23,9 +24,20 @@ public:
 public:
 	InstructionSet* getInstructionSet() { return _insSet; }
 	void setInstructionSet(InstructionSet* s){ _insSet = s; }
+	void clearInsSet();
+	void setParent(InstructionValue* v) { _parentInsVal = v; }
+	InstructionValue* getParent() { return _parentInsVal; }
+
+	void setFor(bool b) { _hasFor = b; }
+	bool getFor() { return _hasFor; }
+	void setBreaked(bool b)  { _breaked = b; }
+	bool getBreaked() { return _breaked; }
+	
 private:
 	InstructionSet* _insSet;
-
+	InstructionValue* _parentInsVal;
+	bool _hasFor;
+	bool _breaked;
 };
 
 
@@ -64,6 +76,7 @@ public:
 	void setParentClosure(Closure* c);
 	Closure* getParentClosure()  { return _parentClosure; }
 	Table* getTopTable();
+	Table* getLevelTable(unsigned int i);
 	int findUpTables(Value* key, Value** val, Table** table);
 	void initClosure();
 	void clearClosure();

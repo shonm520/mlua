@@ -25,7 +25,7 @@ void CodeGenerate(SyntaxTreeNodeBase* root, State* state)
 	root->accept(&codeGen, &boot);
 
 	VM vm(state);
-	vm.runCode(boot.fetchInstructionSet());
+	vm.runCode(boot.fetchInstructionVal());
 }
 
 
@@ -312,14 +312,11 @@ void CodeGenerateVisitor::visit(ReturnStatement* rtSmt, void* data)
 void CodeGenerateVisitor::visit(IfStatement* ifSmt, void* data)
 {
 	CodeWrite* writer = static_cast<CodeWrite*>(data);
-	Instruction* ins = writer->newInstruction();
-	ins->op_code = Instruction::OpCode_EnterBlock;
-
 	BlockNode* ifSmtRight = (BlockNode*)ifSmt->getChildByIndex(IfStatement::EElseOrEnd);
 	if (ifSmtRight)  {
 		CodeWrite br_writer;
 		ifSmtRight->accept(this, &br_writer);
-		ins = writer->newInstruction();
+		Instruction* ins = writer->newInstruction();
 		ins->op_code = Instruction::OpCode_GenerateBlock;
 		ins->param_a.type = InstructionParam::InstructionParamType_Value;
 		InstructionValue* valInsSet = br_writer.fetchInstructionVal();
@@ -329,12 +326,10 @@ void CodeGenerateVisitor::visit(IfStatement* ifSmt, void* data)
 	BlockNode* ifSmtLeft = (BlockNode*)ifSmt->getChildByIndex(IfStatement::EIf);
 	CodeWrite bl_writer;
 	ifSmtLeft->accept(this, &bl_writer);
-	ins = writer->newInstruction();
+	Instruction* ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_GenerateBlock;
 	ins->param_a.type = InstructionParam::InstructionParamType_Value;
 	ins->param_a.param.value = bl_writer.fetchInstructionVal();
-	ins = writer->newInstruction();
-	ins->op_code = Instruction::OpCode_QuitBlock;
 
 	auto cmp = ifSmt->getChildByIndex(IfStatement::ECompare);     //逻辑比较部分放在最后
 	ExpVarData ed = { ExpVarData::VAR_GET };
@@ -468,7 +463,7 @@ void CodeGenerateVisitor::visit(ForStatement* forSmt, void* data)
 	auto block = forSmt->getChildByIndex(ForStatement::EBlock);
 
 	Instruction* ins = writer->newInstruction();
-	ins->op_code = Instruction::OpCode_EnterBlock;
+	ins->op_code = Instruction::OpCode_EnterBlock;    //必须有这个，for后面的都是局部变量，for循环体中的更加是
 
 	CodeWrite for_writer;
 	block->accept(this, &for_writer);
@@ -482,8 +477,7 @@ void CodeGenerateVisitor::visit(ForStatement* forSmt, void* data)
 	if (end) end->accept(this, data);
 	if (start)   {
 		start->accept(this, data);
-
-		ExpVarData ed = { ExpVarData::VAR_GET };
+		ExpVarData ed = { ExpVarData::VAR_SET };
 		writer->paramRW = &ed;
 		start->getChildByIndex(0)->accept(this, data);   //for循环变量名仍需压栈
 	}
@@ -494,4 +488,11 @@ void CodeGenerateVisitor::visit(ForStatement* forSmt, void* data)
 
 	ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_QuitBlock;
+}
+
+void CodeGenerateVisitor::visit(BreakStatement* brkSmt, void* data)
+{
+	CodeWrite* writer = static_cast<CodeWrite*>(data);
+	Instruction* ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_Break;
 }

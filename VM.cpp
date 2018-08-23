@@ -64,7 +64,8 @@ int Print(State* state, void* num)
 
 VM::VM(State* state)
 	: _state(state),
-	_stackClosure(new Stack(20))
+	_stackClosure(new Stack(20)),
+	_curInsVal(nullptr)
 {
 	_stack = _state->getStack();
 	registerFunc();
@@ -92,10 +93,16 @@ void VM::registerFunc()
 }
 
 
-void VM::runCode(InstructionSet* insSet)
+int VM::runCode(InstructionValue* insSetVal)
 {
-	auto& vtIns = insSet->toVtInstructions();
+	insSetVal->setParent(_curInsVal);
+	_curInsVal = insSetVal;
+	auto& vtIns = insSetVal->getInstructionSet()->toVtInstructions();
 	for (auto it = vtIns.begin(); it != vtIns.end(); ++it)  {
+		if (insSetVal->getBreaked())  {
+			printf("breaked!!!\n");
+			return 0;
+		}
 		Instruction* ins = *it;
 		switch (ins->op_code)
 		{
@@ -160,6 +167,11 @@ void VM::runCode(InstructionSet* insSet)
 			forCompare(ins);
 			break;
 
+		case Instruction::OpCode_Break:
+			//breakFor(ins);
+			return -1;
+			//break;
+
 		case Instruction::OpCode_Less:
 		case Instruction::OpCode_Greater:
 		case Instruction::OpCode_LessEqual:
@@ -197,8 +209,8 @@ void VM::runCode(InstructionSet* insSet)
 			break;
 		}
 	}
+	return 0;
 }
-
 
 void VM::generateClosure(Instruction* ins)
 {
@@ -209,13 +221,10 @@ void VM::generateClosure(Instruction* ins)
 	_stack->Push(cl);
 }
 
-
-
 void VM::add_global_table()
 {
 
 }
-
 
 void VM::call(Instruction* ins)
 {
@@ -234,7 +243,7 @@ void VM::call(Instruction* ins)
 		_stackClosure->Push(cl);
 		cl->setRealParamNum(paramNum);
 		cl->setNeedRetNum(ins->param_a.param.counter.counter2);
-		runCode(cl->getPrototype()->getInstructionSet());
+		runCode(cl->getPrototype());
 	}
 }
 
@@ -261,7 +270,6 @@ Closure* VM::getCurrentClosure()
 	return cl;
 }
 
-
 void VM::passFunParam(Instruction* ins)
 {
 	int needParamNum = ins->param_a.param.counter.counter1;
@@ -286,7 +294,7 @@ void VM::assignVals(int num_key, int num_val, int type)      //º¯Êıµ÷ÓÃ´«Èë²ÎÊıÊ
 		listKeys.push_front(_stack->popValue());
 	}
 	if (num_key > num_val)  {                   //ÖµÉÙÓÚkey£¬ÓĞ¿ÉÄÜÊÇº¯ÊıÒıÆğµÄa£¬b =f(),×î¶àµ¯³ökeyµÄ¸öÊı£¬ÒòÎªÕ»ÉÏ¿ÉÄÜÓĞÆäËûµØ·½µÄÖµ
-		num_val = num_key < _stack->Size() ? num_key : _stack->Size();
+		num_val = (unsigned int)num_key < _stack->Size() ? num_key : _stack->Size();
 	}
 	for (int i = 0; i < num_val; i++)    {      //Òª°ÑÊ£ÏÂµÄÖµÈ«²¿µ¯³ö
 		Value* val = _stack->popValue();
@@ -348,7 +356,6 @@ void VM::assignSimple(int type)
 	tab->Assign(key, val);
 }
 
-
 void VM::get_table(Instruction* ins)
 {
 	Value* key = ins->param_a.param.name;
@@ -359,7 +366,6 @@ void VM::get_table(Instruction* ins)
 	}
 	
 }
-
 
 void VM::setLoacalVar(Instruction* ins)
 {
@@ -388,7 +394,6 @@ void VM::pushValue(Instruction* ins)
 		_stack->Push(ins->param_a.param.value);
 	}
 }
-
 
 void VM::operateNum(Instruction* ins)
 {
@@ -446,7 +451,6 @@ void VM::operateLogic(Instruction* ins)
 	_stack->Push(retLogic);
 }
 
-
 void VM::funcionRet(Instruction* ins)
 {
  	int num = ins->param_a.param.counter.counter1;
@@ -454,15 +458,14 @@ void VM::funcionRet(Instruction* ins)
 	cl->setRealRetNum(num);
 }
 
-
 void VM::ifCompare(Instruction* ins)
 {
 	Value* logic = _stack->popValue();
-	Value* leftBlock = _stack->popValue();
+	InstructionValue* leftBlock = (InstructionValue*)_stack->popValue();
 
-	Value* rightBlock = nullptr;
+	InstructionValue* rightBlock = nullptr;
 	if (ins->param_a.param.counter.counter1 > 0)  {
-		rightBlock = _stack->popValue();
+		rightBlock = (InstructionValue*)_stack->popValue();
 	}
 	bool runLeft = true;                //³ıÁËnilºÍfalseÆäËûÈ«Îªtrue
 	if (logic->Type() == Value::TYPE_NIL)  {
@@ -485,25 +488,38 @@ void VM::ifCompare(Instruction* ins)
 
 void VM::forCompare(Instruction* ins)
 {
-	int iStart = ((Number*)_stack->popValue())->GetInteger();
+	Value* valStart = _stack->popValue();
+	Table* top = getCurrentClosure()->getTopTable();
+	Number* numStart = (Number*)top->GetValue(valStart);
+	int iStart = ((Number*)top->GetValue(valStart))->GetInteger();
 	int iEnd = ((Number*)_stack->popValue())->GetInteger();
 	int iStep = 1;
 	if (ins->param_a.param.counter.counter1 > 0)  {
 		iStep = ((Number*)_stack->popValue())->GetInteger();
 	}
 	InstructionValue* block = (InstructionValue*)_stack->popValue();
-	
-	if (iStep > 0)  {
-		for (int i = iStart; i <= iEnd; i += iStep)  {
-			runBlockCode(block);
+	block->setFor(true);
+
+	auto xInc = [](int i, int end) {return i <= end; };
+	auto xDec = [](int i, int end) {return i >= end; };
+	typedef bool(*Cmp)(int, int);
+	Cmp xCmp = xInc;
+	if (iStep < 0) {
+		xCmp = xDec;
+	}
+	for (int i = iStart; xCmp(i, iEnd); i += iStep)  {
+		numStart->SetNumber(i);
+		top->Assign(valStart, numStart);
+		runBlockCode(block);
+		if (block->getBreaked())  {
+			break;
 		}
 	}
-	else if (iStep < 0) {
-		for (int i = iStart; i >= iEnd; i += iStep)  {
-			runBlockCode(block);
-		}
-	}
-	
+}
+
+void VM::breakFor(Instruction* ins)
+{
+
 }
 
 void VM::enterBlock(Instruction* ins)
@@ -520,10 +536,27 @@ void VM::runBlockCode(Value* val)
 {
 	if (val)  {
 		assert(val->Type() == Value::TYPE_INSTRUCTVAL);
-		runCode(((InstructionValue*)val)->getInstructionSet());
+		getCurrentClosure()->addBlockTable();
+		int ret = runCode((InstructionValue*)val);
+		getCurrentClosure()->removeBlockTable();
+		if (ret == -1)  {
+			((InstructionValue*)val)->setBreaked(true);
+			InstructionValue* p = (InstructionValue*)val;
+			while (p)  {
+				p = p->getParent();
+				if (p)  {
+					p->setBreaked(true);
+					if (p->getFor())  {
+						break;
+					}
+				}
+			}
+			if (!p)  {    //ÕÒµ½Í·ÁË¶¼Ã»ÓĞÕÒµ½Ñ­»·
+				printf("run error, break in no loop block!!!\n");
+			}
+		}
 	}
 }
-
 
 void VM::generateBlock(Instruction* ins)
 {

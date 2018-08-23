@@ -123,6 +123,7 @@ public:
 
 	int GetInteger() const  { return static_cast<int>(floor(_value)); }
 	bool IsInteger() const { return floor(_value) == _value; }
+	void SetNumber(double d)  { _value = d; }
 
 private:
 	double _value;

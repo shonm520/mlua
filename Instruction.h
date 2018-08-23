@@ -118,6 +118,7 @@ struct Instruction
 
 		OpCode_If,
 		OpCode_For,
+		OpCode_Break,
 		OpCode_TableDefine,
 		OpCode_TableArrIndex,
 		OpCode_TableMemAccess,
