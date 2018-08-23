@@ -63,5 +63,7 @@ private:
 	void tableAccess(Instruction* ins);
 	void tableArrIndex(Instruction* ins);
 
+	void negNumber(Instruction* ins);
+
 };
 

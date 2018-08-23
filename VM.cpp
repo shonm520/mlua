@@ -168,9 +168,7 @@ int VM::runCode(InstructionValue* insSetVal)
 			break;
 
 		case Instruction::OpCode_Break:
-			//breakFor(ins);
 			return -1;
-			//break;
 
 		case Instruction::OpCode_Less:
 		case Instruction::OpCode_Greater:
@@ -203,6 +201,10 @@ int VM::runCode(InstructionValue* insSetVal)
 
 		case Instruction::OpCode_TableArrIndex:
 			tableArrIndex(ins);
+			break;
+
+		case Instruction::OpCode_Negative:
+			negNumber(ins);
 			break;
 		
 		default:
@@ -615,5 +617,13 @@ void VM::tableAccess(Instruction* ins)
 		val = new Nil();
 	}
 	
+	_stack->Push(val);
+}
+
+void VM::negNumber(Instruction* ins)
+{
+	Number* val = (Number*)_stack->popValue();
+	double num = val->Get() * -1;
+	val->SetNumber(num);
 	_stack->Push(val);
 }

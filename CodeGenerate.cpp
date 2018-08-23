@@ -157,11 +157,8 @@ void CodeGenerateVisitor::visit(UnaryExpression* uexp, void* data)
 	exp->accept(this, data);
 
 	CodeWrite* writer = static_cast<CodeWrite*>(data);
-	Instruction *ins = writer->newInstruction();
-	ins->op_code = Instruction::OpCode_ResetCounter;
-
-	ins = writer->newInstruction();
-	ins->op_code = Instruction::OpCode_Not;
+	Instruction* ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_Negative;
 }
 
 
