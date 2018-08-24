@@ -31,8 +31,6 @@ private:
 	void add_global_table();
 	void enterClosure();
 	void quitClosure();
-	
-	void get_table(Instruction* ins);
 
 	void call(Instruction* ins);
 	void passFunParam(Instruction* ins);

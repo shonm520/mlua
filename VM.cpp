@@ -38,9 +38,10 @@ void PrintType(Value* val)
 
 
 
-int Print(State* state, void* num)
+int Print(State* state, void* num_)
 {
 	std::vector<Value*> vtVals;
+	int num = state->getStack()->Size();
 	for (int i = (int)num - 1; i >= 0; i--)   {
 		Value* val = state->getStack()->popValue();
 		vtVals.push_back(val);
@@ -112,68 +113,53 @@ int VM::runCode(InstructionValue* insSetVal)
 		case Instruction::OpCode_EnterClosure:         //进入函数时调用
 			enterClosure();
 			break;
-
 		case Instruction::OpCode_QuitClosure:
 			quitClosure();
 			break;
-
 		case Instruction::OpCode_InitLocalVar:         //局部变量声明
 			initLocalVar(ins);
 			break;
 		case Instruction::OpCode_GetLocalVar:             
 			getLoacalVar(ins);
 			break;
-
 		case Instruction::OpCode_SetLocalVar:             
 			setLoacalVar(ins);
 			break;
-
 		case Instruction::OpCode_GenerateClosure:
 			generateClosure(ins);
 			break;
-
 		case Instruction::OpCode_PassFunParam:
 			passFunParam(ins);
 			break;
-
 		case Instruction::OpCode_Call:
 			call(ins);
 			break;
-
 		case Instruction::OpCode_Ret:
 			funcionRet(ins);
 			break;
-
 		case Instruction::OpCode_Push:
 			pushValue(ins);
 			break;
-
 		case Instruction::OpCode_Assign:
 			assignOperate(ins);
 			break;
-
 		case Instruction::OpCode_Plus:
 		case Instruction::OpCode_Minus:
 		case Instruction::OpCode_Multiply:
 		case Instruction::OpCode_Divide:
 			operateNum(ins);
 			break;
-
 		case Instruction::OpCode_If:
 			ifCompare(ins);
 			break;
-
 		case Instruction::OpCode_NumericFor:
 			numericFor(ins);
 			break;
-
 		case Instruction::OpCode_GenericFor:
 			genericFor(ins);
 			break;
-
 		case Instruction::OpCode_Break:
 			return -1;
-
 		case Instruction::OpCode_Less:
 		case Instruction::OpCode_Greater:
 		case Instruction::OpCode_LessEqual:
@@ -182,35 +168,27 @@ int VM::runCode(InstructionValue* insSetVal)
 		case Instruction::OpCode_Equal:
 			operateLogic(ins);
 			break;
-
 		case Instruction::OpCode_EnterBlock:
 			enterBlock(ins);
 			break;
-
 		case Instruction::OpCode_QuitBlock:
 			quitBlock(ins);
 			break;
-
 		case Instruction::OpCode_GenerateBlock:
 			generateBlock(ins);
 			break;
-
 		case Instruction::OpCode_TableDefine:
 			tableDefine(ins);
 			break;
-
 		case Instruction::OpCode_TableMemAccess:
 			tableAccess(ins);
 			break;
-
 		case Instruction::OpCode_TableArrIndex:
 			tableArrIndex(ins);
 			break;
-
 		case Instruction::OpCode_Negative:
 			negNumber(ins);
 			break;
-		
 		default:
 			break;
 		}
@@ -234,7 +212,7 @@ void VM::add_global_table()
 
 void VM::call(Instruction* ins)
 {
-	int paramNum = ins->param.counter.counter1;
+	int paramNum = ins->param.counter.counter1;                  //实参个数
 	Value* callee = _stack->popValue();
 
 	if (callee->Type() == Value::TYPE_NIL)  {
@@ -247,8 +225,9 @@ void VM::call(Instruction* ins)
 	else if (callee->Type() == Value::TYPE_CLOSURE)  {
 		Closure* cl = static_cast<Closure*>(callee)->clone();    //这里必须克隆，，因为有递归调用函数
 		_stackClosure->Push(cl);
-		cl->setRealParamNum(paramNum);
-		cl->setNeedRetNum(ins->param.counter.counter2);
+		cl->setActParamNum(paramNum);
+		int needRetNum = ins->param.counter.counter2;
+		cl->setNeedRetNum(needRetNum);
 		runCode(cl->getPrototype());
 	}
 }
@@ -256,7 +235,7 @@ void VM::call(Instruction* ins)
 void VM::enterClosure()
 {
 	getCurrentClosure()->initClosure();
-};
+}
 
 void VM::quitClosure()
 {
@@ -276,17 +255,10 @@ Closure* VM::getCurrentClosure()
 	return cl;
 }
 
-void VM::passFunParam(Instruction* ins)
+void VM::passFunParam(Instruction* ins)                      //其实这个也可以用OpCode_InitLocalVar代替
 {
 	int needParamNum = ins->param.counter.counter1;
-	int realParamNum = getCurrentClosure()->getRealParamNum();
-	int n = needParamNum - realParamNum;
-	if (n > 0)  {
-		while (n > 0)  {
-			_stack->Push(new Nil());
-			n--;
-		}
-	}
+	int realParamNum = getCurrentClosure()->getActParamNum();
 	
 	assignVals(needParamNum, realParamNum, 0);               //如果压入的值比参数多，后面会处理掉
 }
@@ -362,16 +334,6 @@ void VM::assignSimple(int type)
 	tab->Assign(key, val);
 }
 
-void VM::get_table(Instruction* ins)
-{
-	Value* key = ins->param.name;
-	Table* table = getCurrentClosure()->getTopTable();
-	Value* val = table->GetValue(key);
-	if (val)  {
-		_stack->Push(val);
-	}
-	
-}
 
 void VM::setLoacalVar(Instruction* ins)
 {
@@ -461,7 +423,7 @@ void VM::funcionRet(Instruction* ins)
 {
  	int num = ins->param.counter.counter1;
 	Closure* cl = getCurrentClosure();
-	cl->setRealRetNum(num);
+	cl->setActRetNum(num);
 }
 
 void VM::ifCompare(Instruction* ins)
@@ -532,14 +494,14 @@ void VM::genericFor(Instruction* ins)
 		vtKeys.push_back(_stack->popValue());
 	}
 	ctrlKey = vtKeys[vtKeys.size() - 1];
-	Value* func    = _stack->popValue();
 	Value* ctrlVal = _stack->popValue();
 	Value* data    = _stack->popValue();
+	Value* func = _stack->popValue();
 	
 	do  {
-		_stack->Push(data);
-		_stack->Push(ctrlVal);
-		_stack->Push(func);
+		_stack->Push(data);       //第一个参数
+		_stack->Push(ctrlVal);    //第二个参数
+		_stack->Push(func);       //迭代函数
 
 		Instruction insCall;
 		insCall.param.counter.counter1 = 2;
@@ -556,7 +518,8 @@ void VM::genericFor(Instruction* ins)
 		if (ctrlVal->Type() == Value::TYPE_NIL)  {  //控制值为nil
 			break;
 		}
-
+		InstructionValue* block = (InstructionValue*)ins->param.value;
+		block->setFor(true);
 		runBlockCode(ins->param.value);
 	} while (true);
 }
@@ -621,8 +584,7 @@ void VM::tableDefine(Instruction* ins)
 
 void VM::tableArrIndex(Instruction* ins)
 {
-// 	int index = ins->param.array_index;
-// 	_stack->Push(new Number(index));
+
 }
 
 void VM::tableAccess(Instruction* ins)

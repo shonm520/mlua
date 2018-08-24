@@ -44,8 +44,8 @@ Closure* Function::generateClosure(State* s)
 
 
 Closure::Closure(State* s)
-	:_state(s), _realParamNum(0),
-	_realRetNum(0), _needRetNum(0),
+	:_state(s), _actParamNum(0),
+	_actRetNum(0), _needRetNum(0),
 	_prototype(nullptr),
 	_parentClosure(nullptr),
 	_upTables(nullptr)
@@ -66,20 +66,23 @@ void Closure::clearClosure()
 
 void Closure::balanceStack()
 {
-	int n = _realRetNum - _needRetNum;      //真实返回值个数-需要返回值个数
-	if (n > 0)  {                           //f() + 2,f()真实返回了2个，但是这里只需要一个，故栈要弹出一个
-		while (n > 0)  {
-			_state->getStack()->popValue();
-			n--;
+	if (_needRetNum != -1)  {                  //为-1时，表示无法计算需要的返回值，例如在f1(f2())
+		int n = _actRetNum - _needRetNum;      //真实返回值个数-需要返回值个数
+		if (n > 0)  {                           //f() + 2,如果f()真实返回了2个，但是这里只需要一个，故栈要弹出一个
+			while (n > 0)  {
+				_state->getStack()->popValue();
+				n--;
+			}
+		}
+		else  {
+			while (n < 0)  {                    //f() + 2, 如果f()真实返回0个，但是这里需要一个，故要压入栈一个（貌似不压也行，因为后面赋值时会平衡）
+				_state->getStack()->Push(new Nil());
+				n++;
+			}
 		}
 	}
-	else  {
-		while (n < 0)  {                    //f() + 2, f()真实返回0个，但是这里需要一个，故要压入栈一个（貌似不压也行，因为后面赋值时会平衡）
-			_state->getStack()->Push(new Nil());
-			n++;
-		}
-	}
-	_realRetNum = 0;
+	
+	_actRetNum = 0;
 	_needRetNum = 0;
 }
 
@@ -101,8 +104,8 @@ Closure* Closure::clone()
 {
 	Closure* cl = new Closure(_state);
 	cl->_needRetNum = _needRetNum;
-	cl->_realParamNum = _realRetNum;
-	cl->_realRetNum = _realRetNum;
+	cl->_actParamNum = _actRetNum;
+	cl->_actRetNum = _actRetNum;
 	cl->_parentClosure = _parentClosure;
 	cl->_prototype = _prototype;
 	if (_upTables)  {

@@ -57,7 +57,7 @@ public:
 	void generateFuncCode(bool bGlobal, SyntaxTreeNodeBase* name, SyntaxTreeNodeBase* params, SyntaxTreeNodeBase* body, CodeWrite*);
 	void generateFuncBodyCode(SyntaxTreeNodeBase*, CodeWrite*);
 	void generateClosureCode(InstructionSet*, CodeWrite*);
-	void generateNodeListCode(SyntaxTreeNodeBase* exp_list, CodeWrite*, ExpVarData::Oprate_Type type, bool bRev = false);
+	void generateNodeListCode(SyntaxTreeNodeBase* exp_list, CodeWrite*, ExpVarData::Oprate_Type type);
 };
 
 

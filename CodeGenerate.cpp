@@ -250,43 +250,22 @@ void CodeGenerateVisitor::visit(NormalCallFunciton* callFun, void* data)
 	ins->param.counter.counter2 = callFun->_needRetNum;
 }
 
-void CodeGenerateVisitor::generateNodeListCode(SyntaxTreeNodeBase* node_list, CodeWrite* writer, ExpVarData::Oprate_Type type, bool bRev)
+void CodeGenerateVisitor::generateNodeListCode(SyntaxTreeNodeBase* node_list, CodeWrite* writer, ExpVarData::Oprate_Type type)
 {
 	ExpVarData ed = { type };
-	auto func = [=](TreeNode* exp)  {
+	auto func = [=](TreeNode* exp, bool last)  {
 		writer->paramRW = (void*)&ed;
 		if (exp->getNodeKind() == SyntaxTreeNodeBase::FUNCTION_CALL_K)  {
 			((NormalCallFunciton*)exp)->_needRetNum = 1;
+			if (last)  {
+				((NormalCallFunciton*)exp)->_needRetNum = -1;
+			}
 		}
 		exp->accept(this, writer);
 	};
 
-	std::vector<TreeNode*> vtNode;
 	for (auto exp = node_list; exp != nullptr; exp = exp->getNextNode())  {
-		if (bRev)  {
-			vtNode.push_back(exp);
-		}
-		else  {
-			func(exp);
-
-
-// 			writer->paramRW = &ed;
-// 			if (exp->getNodeKind() == SyntaxTreeNodeBase::FUNCTION_CALL_K)  {
-// 				((NormalCallFunciton*)exp)->_needRetNum = 1;
-// 			}
-// 			exp->accept(this, writer);
-		}
-	}
-	if (bRev)  {
-		for (auto it = vtNode.rbegin(); it != vtNode.rend(); ++it)  {
-// 			TreeNode* exp = *it;
-// 			writer->paramRW = &ed;
-// 			if (exp->getNodeKind() == SyntaxTreeNodeBase::FUNCTION_CALL_K)  {
-// 				((NormalCallFunciton*)exp)->_needRetNum = 1;
-// 			}
-// 			exp->accept(this, writer);
-			func(*it);
-		}
+		func(exp, (exp->getNextNode() == nullptr));
 	}
 }
 
@@ -540,10 +519,14 @@ void CodeGenerateVisitor::visit(GenericForStatement* gforSmt, void* data)
 	InstructionValue* valInsSet = for_writer.fetchInstructionVal();
 
 	ExpVarData ed = { ExpVarData::VAR_GET };
-	generateNodeListCode(expList->getNextNode(), writer, ed.type);
 	
 	writer->paramRW = &ed;
+	if (expList->getNodeKind() == NormalCallFunciton::FUNCTION_CALL_K)  {
+		((NormalCallFunciton*)expList)->_needRetNum = 3;
+	}
 	expList->accept(this, data);       //这个是函数
+
+	generateNodeListCode(expList->getNextNode(), writer, ed.type);   //先压入参数
 
 	generateNodeListCode(nameList, writer, ExpVarData::VAR_SET);     //k,v
 
