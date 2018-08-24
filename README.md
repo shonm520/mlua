@@ -59,12 +59,11 @@ local tt = {12, 78}
 for k, v, m in ipairsIter, tt, 0 do
     print(k, v, m)
 end
-print(20)
 ```
 能正确打印出：
 ```
-1   12  20
-2   78  20
+1   12  10
+2   78  10
 ```
 
 下一步：
