@@ -47,19 +47,30 @@ struct InstructionParam
 	};
 
 	InstructionParamType type;
-	union  {
+// 	struct  Param{
+// 		union {
+// 			Value *value;
+// 			String* name;
+// 		};
+// 		//int array_index;
+// 		struct Counter  {
+// 			int counter1;
+// 			int counter2;
+// 		};
+// 	};
+
+	//Param param;
+
+	struct Counter  {
+		int counter1;
+		int counter2;
+	};
+
+	union {
 		Value *value;
 		String* name;
-		//int counter;
-		//InstructionSet* insSet;
-		int counter_index;
-		int opcode_index;
-		int array_index;
-		struct Counter  {
-			int counter1;
-			int counter2;
-		}counter;
-	} param;
+	};
+	Counter counter;
 };
 
 
@@ -117,7 +128,8 @@ struct Instruction
 		OpCode_SetTableArrayValue,
 
 		OpCode_If,
-		OpCode_For,
+		OpCode_NumericFor,
+		OpCode_GenericFor,
 		OpCode_Break,
 		OpCode_TableDefine,
 		OpCode_TableArrIndex,
@@ -125,7 +137,8 @@ struct Instruction
 		OpCode_PassFunParam,
 	};
 	OpCode op_code;
-	InstructionParam param_a;
+	int type;
+	InstructionParam param;
 	Instruction();
 };
 

@@ -244,6 +244,12 @@ Parser::TreeNode *Parser::parse_access_table_Field(SyntaxTreeNodeBase* table_pre
 			else if (table_field.kind == Scanner::STRING)  {
 				filed = new Terminator(table_field, Terminator::TERM_STRING);
 			}
+			else if (table_field.kind == Scanner::ID)  {
+				filed = new IdentifierNode(table_field);
+			}
+			else  {
+				syntaxError(_strCurParserFileName, "id or number ,string", table_field);
+			}
 			tab_sum->addChild( filed, 1);
 			table_prefix = tab_sum;
 			eatExpectedToken(Token(Scanner::SYMBOL, "]"));
@@ -335,7 +341,17 @@ Parser::TreeNode *Parser::parse_statements()    //½âÎöÒ»¸ö¿éÀïµÄËùÓÐÓï¾ä,°üÀ¨ÉùÃ
 		return rt_smt;
 	}
 	else if (token.compare(Scanner::Token_For))  {
-		return parse_for_statement();
+		token = peekToken(false);
+		token = peekToken(false);
+		if (token.compare(Scanner::Token_Assign))  {              //ÊýÖµÐÍforÑ­»·
+			return parse_numeric_for_statement();
+		}
+		else if (token.compare(Scanner::Token_Comma))  {          //·ºÐÍforÑ­»·
+			return parse_generic_for_statement();
+		}
+		else {
+			return nullptr;
+		}
 	}
 	else  {
 		if (token.compare(Scanner::Token_End))  {            //¿é½áÊø
@@ -681,7 +697,6 @@ Parser::TreeNode *Parser::parse_build_table_indexField()
 Parser::TreeNode *Parser::parse_build_table_nameField()
 {
 	TableNameField* assign_node = new TableNameField();
-
 	TreeNode* node_name = parse_var_name(false);
 	assert(eatExpectedToken(Token(Scanner::Token_Assign)));
 	TreeNode* node_value = parse_expression();
@@ -695,11 +710,8 @@ Parser::TreeNode *Parser::parse_build_table_nameField()
 Parser::TreeNode *Parser::parse_build_table_arrayField()
 {
 	TableArrayFiled* arr_node = new TableArrayFiled();
-
 	TreeNode* node_name = parse_var_name(false);
-
 	arr_node->addChild(node_name, 0);
-
 	return arr_node;
 }
 
@@ -841,9 +853,9 @@ Parser::TreeNode *Parser::parse_call_expression(SyntaxTreeNodeBase* caller)
 	return parse_call_statement(caller);
 }
 
-Parser::TreeNode* Parser::parse_for_statement()
+Parser::TreeNode* Parser::parse_numeric_for_statement()     //for Name = exp , exp [, exp] do block end 
 {
-	ForStatement* nodeFor = nullptr;
+	NumericForStatement* nodeFor = nullptr;
 	do   {
 		eatExpectedToken(Token(Scanner::Token_For));
 		Scanner::Token token = getToken();
@@ -884,11 +896,33 @@ Parser::TreeNode* Parser::parse_for_statement()
 		}
 
 		TreeNode* block = parse_block();
-		nodeFor = new ForStatement();
+		nodeFor = new NumericForStatement();
 		nodeFor->addChild(assin, 0);
 		nodeFor->addChild(end, 1);
 		nodeFor->addChild(step, 2);
 		nodeFor->addChild(block, 3);
+
+	} while (0);
+	return nodeFor;
+}
+
+Parser::TreeNode* Parser::parse_generic_for_statement()     //for namelist in explist do block end 
+{
+	GenericForStatement* nodeFor = nullptr;
+	do   {
+		eatExpectedToken(Token(Scanner::Token_For));
+
+		TreeNode* namelist = parse_var_name(true);
+		eatExpectedToken(Token(Scanner::Token_In));
+		TreeNode* explist = parse_expression_list();
+
+		eatExpectedToken(Token(Scanner::Token_Do));
+
+		TreeNode* block = parse_block();
+		nodeFor = new GenericForStatement();
+		nodeFor->addChild(namelist, 0);
+		nodeFor->addChild(explist, 1);
+		nodeFor->addChild(block, 2);
 
 	} while (0);
 	return nodeFor;

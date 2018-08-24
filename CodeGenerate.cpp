@@ -34,8 +34,8 @@ void CodeGenerateVisitor::visit(Terminator* term, void* data)
 	CodeWrite* writer = static_cast<CodeWrite*>(data);
 	Instruction *ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_Push;
-	ins->param_a.type = InstructionParam::InstructionParamType_Value;
-	ins->param_a.param.value = term->get_val();
+	ins->type = InstructionParam::InstructionParamType_Value;
+	ins->param.value = term->get_val();
 }
 
 void CodeGenerateVisitor::visit(IdentifierNode* idt, void* data)
@@ -45,13 +45,13 @@ void CodeGenerateVisitor::visit(IdentifierNode* idt, void* data)
 	ExpVarData::Oprate_Type type = static_cast<ExpVarData*>(writer->paramRW)->type;
 	if (type == ExpVarData::VAR_SET)  {                                   //局部变量赋值
 		ins->op_code = Instruction::OpCode_SetLocalVar;
-		ins->param_a.type = InstructionParam::InstructionParamType_Name;
-		ins->param_a.param.name = (String*)idt->get_val();
+		ins->type = InstructionParam::InstructionParamType_Name;
+		ins->param.name = (String*)idt->get_val();
 	}
 	else if (type == ExpVarData::VAR_GET)  {
 		ins->op_code = Instruction::OpCode_GetLocalVar;
-		ins->param_a.type = InstructionParam::InstructionParamType_Name;
-		ins->param_a.param.name = (String*)idt->get_val();
+		ins->type = InstructionParam::InstructionParamType_Name;
+		ins->param.name = (String*)idt->get_val();
 	}
 }
 
@@ -78,7 +78,7 @@ void CodeGenerateVisitor::generateChunkCode(ChunkNode* chunk, CodeWrite* writer)
 
 	ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_Call;
-	ins->param_a.param.counter.counter1 = 0;
+	ins->param.counter.counter1 = 0;
 
 	ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_DelGlobalTable;
@@ -88,11 +88,11 @@ void CodeGenerateVisitor::generateClosureCode(InstructionSet* func, CodeWrite* w
 {
 	Instruction *ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_GenerateClosure;
-	ins->param_a.type = InstructionParam::InstructionParamType_Value;
+	ins->type = InstructionParam::InstructionParamType_Value;
 
 	Function* valInsSet = new Function();
 	valInsSet->setInstructionSet(func);
-	ins->param_a.param.value = valInsSet;
+	ins->param.value = valInsSet;
 }
 
 
@@ -107,7 +107,7 @@ void CodeGenerateVisitor::generateFuncCode(bool bGlobal, SyntaxTreeNodeBase* nam
 		generateNodeListCode(params, &f_writer, ExpVarData::VAR_SET);
 		ins = f_writer.newInstruction();
 		ins->op_code = Instruction::OpCode_PassFunParam;
-		ins->param_a.param.counter.counter1 = params->getSiblings();
+		ins->param.counter.counter1 = params->getSiblings();
 	}
 
 	generateFuncBodyCode(body, &f_writer);
@@ -124,8 +124,8 @@ void CodeGenerateVisitor::generateFuncCode(bool bGlobal, SyntaxTreeNodeBase* nam
 		writer->paramRW = &ed;
 		name->accept(this, writer);
 		Instruction* ins = writer->newInstruction();
-		ins->param_a.param.counter.counter1 = 1;
-		ins->param_a.param.counter.counter2 = 1;
+		ins->param.counter.counter1 = 1;
+		ins->param.counter.counter2 = 1;
 		if (bGlobal)  {
 			ins->op_code = Instruction::OpCode_Assign;
 		}
@@ -191,8 +191,8 @@ void CodeGenerateVisitor::visit(LocalNameListStatement* stm, void* data)
 
 	Instruction* ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_InitLocalVar;
-	ins->param_a.param.counter.counter1 = n1;
-	ins->param_a.param.counter.counter2 = n2;
+	ins->param.counter.counter1 = n1;
+	ins->param.counter.counter2 = n2;
 }
 
 void CodeGenerateVisitor::visit(AssignStatement* stm, void* data)
@@ -220,14 +220,13 @@ void CodeGenerateVisitor::visit(AssignStatement* stm, void* data)
 		exp->accept(this, writer);
 	}
 
-	generateNodeListCode(name_list, writer, ExpVarData::VAR_SET);
+	generateNodeListCode(name_list, writer, ExpVarData::VAR_SET);    //先表达式，后名字
 
 	Instruction* ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_Assign;
-	ins->param_a.param.counter.counter1 = n1;
-	ins->param_a.param.counter.counter2 = n2;
+	ins->param.counter.counter1 = n1;
+	ins->param.counter.counter2 = n2;
 }
-
 
 void CodeGenerateVisitor::visit(NormalCallFunciton* callFun, void* data)
 {
@@ -247,23 +246,49 @@ void CodeGenerateVisitor::visit(NormalCallFunciton* callFun, void* data)
 
 	Instruction *ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_Call;
-	ins->param_a.param.counter.counter1 = numParam;
-	ins->param_a.param.counter.counter2 = callFun->_needRetNum;
+	ins->param.counter.counter1 = numParam;
+	ins->param.counter.counter2 = callFun->_needRetNum;
 }
 
-
-void CodeGenerateVisitor::generateNodeListCode(SyntaxTreeNodeBase* node_list, CodeWrite* writer, ExpVarData::Oprate_Type type)
+void CodeGenerateVisitor::generateNodeListCode(SyntaxTreeNodeBase* node_list, CodeWrite* writer, ExpVarData::Oprate_Type type, bool bRev)
 {
 	ExpVarData ed = { type };
-	for (auto exp = node_list; exp != nullptr; exp = exp->getNextNode())  {
-		writer->paramRW = &ed;
+	auto func = [=](TreeNode* exp)  {
+		writer->paramRW = (void*)&ed;
 		if (exp->getNodeKind() == SyntaxTreeNodeBase::FUNCTION_CALL_K)  {
 			((NormalCallFunciton*)exp)->_needRetNum = 1;
 		}
 		exp->accept(this, writer);
+	};
+
+	std::vector<TreeNode*> vtNode;
+	for (auto exp = node_list; exp != nullptr; exp = exp->getNextNode())  {
+		if (bRev)  {
+			vtNode.push_back(exp);
+		}
+		else  {
+			func(exp);
+
+
+// 			writer->paramRW = &ed;
+// 			if (exp->getNodeKind() == SyntaxTreeNodeBase::FUNCTION_CALL_K)  {
+// 				((NormalCallFunciton*)exp)->_needRetNum = 1;
+// 			}
+// 			exp->accept(this, writer);
+		}
+	}
+	if (bRev)  {
+		for (auto it = vtNode.rbegin(); it != vtNode.rend(); ++it)  {
+// 			TreeNode* exp = *it;
+// 			writer->paramRW = &ed;
+// 			if (exp->getNodeKind() == SyntaxTreeNodeBase::FUNCTION_CALL_K)  {
+// 				((NormalCallFunciton*)exp)->_needRetNum = 1;
+// 			}
+// 			exp->accept(this, writer);
+			func(*it);
+		}
 	}
 }
-
 
 void CodeGenerateVisitor::visit(OperateStatement* ops, void* data)
 {
@@ -303,7 +328,7 @@ void CodeGenerateVisitor::visit(ReturnStatement* rtSmt, void* data)
 
 	Instruction* ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_Ret;
-	ins->param_a.param.counter.counter1 = rtList->getSiblings();
+	ins->param.counter.counter1 = rtList->getSiblings();
 }
 
 void CodeGenerateVisitor::visit(IfStatement* ifSmt, void* data)
@@ -315,9 +340,9 @@ void CodeGenerateVisitor::visit(IfStatement* ifSmt, void* data)
 		ifSmtRight->accept(this, &br_writer);
 		Instruction* ins = writer->newInstruction();
 		ins->op_code = Instruction::OpCode_GenerateBlock;
-		ins->param_a.type = InstructionParam::InstructionParamType_Value;
+		ins->type = InstructionParam::InstructionParamType_Value;
 		InstructionValue* valInsSet = br_writer.fetchInstructionVal();
-		ins->param_a.param.value = valInsSet;
+		ins->param.value = valInsSet;
 	}
 
 	BlockNode* ifSmtLeft = (BlockNode*)ifSmt->getChildByIndex(IfStatement::EIf);
@@ -325,8 +350,8 @@ void CodeGenerateVisitor::visit(IfStatement* ifSmt, void* data)
 	ifSmtLeft->accept(this, &bl_writer);
 	Instruction* ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_GenerateBlock;
-	ins->param_a.type = InstructionParam::InstructionParamType_Value;
-	ins->param_a.param.value = bl_writer.fetchInstructionVal();
+	ins->type = InstructionParam::InstructionParamType_Value;
+	ins->param.value = bl_writer.fetchInstructionVal();
 
 	auto cmp = ifSmt->getChildByIndex(IfStatement::ECompare);     //逻辑比较部分放在最后
 	ExpVarData ed = { ExpVarData::VAR_GET };
@@ -335,7 +360,7 @@ void CodeGenerateVisitor::visit(IfStatement* ifSmt, void* data)
 
 	ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_If;
-	ins->param_a.param.counter.counter1 = (ifSmtRight == 0) ? 0 : 1;
+	ins->param.counter.counter1 = (ifSmtRight == 0) ? 0 : 1;
 }
 
 void CodeGenerateVisitor::visit(CompareStatement* cmpSmt, void* data)
@@ -391,7 +416,7 @@ void CodeGenerateVisitor::visit(TableDefine* tbdSmt, void* data)
 
 	Instruction* ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_TableDefine;
-	ins->param_a.param.counter.counter1 = num;
+	ins->param.counter.counter1 = num;
 }
 
 void CodeGenerateVisitor::visit(TableNameField* tnfSmt, void* data)   //t = {1,2,[3]=3, d=5} 1,2是TableArrayFiled,[3]=7是TableIndexField,d=5是TableNameField
@@ -417,8 +442,10 @@ void CodeGenerateVisitor::visit(TableArrayFiled* taSmt, void* data)
 	writer->paramRW = &ed;
 	taSmt->getChildByIndex(0)->accept(this, data);
 	Instruction* ins = writer->newInstruction();
-	ins->op_code = Instruction::OpCode_TableArrIndex;
-	ins->param_a.param.array_index = index;
+
+	ins->op_code = Instruction::OpCode_Push;
+	ins->type = InstructionParam::InstructionParamType_Value;
+	ins->param.value = new Number(index);
 }
 
 void CodeGenerateVisitor::visit(TableIndexField* tifSmt, void* data)
@@ -442,33 +469,42 @@ void CodeGenerateVisitor::visit(TabMemberAccessor* tmsSmt, void* data)
 
 	Instruction* ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_TableMemAccess;
-	ins->param_a.param.value = new String(member->getLexeme());
+	ins->param.value = new String(member->getLexeme());
 }
 
 void CodeGenerateVisitor::visit(TabIndexAccessor* tiSmt, void* data)
 {
-	return visit((TabMemberAccessor*)tiSmt, data);
+	auto tab = tiSmt->getChildByIndex(0);
+	auto member = tiSmt->getChildByIndex(1);
+
+	CodeWrite* writer = static_cast<CodeWrite*>(data);
+	ExpVarData ed = { ExpVarData::VAR_GET };      //t[k],k必须是get
+	writer->paramRW = &ed;
+	member->accept(this, data);
+
+	ed.type = ExpVarData::VAR_SET;
+	writer->paramRW = &ed;
+	tab->accept(this, data);
+
+	Instruction* ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_TableMemAccess;
+	ins->param.value = new String(member->getLexeme());
 }
 
-void CodeGenerateVisitor::visit(ForStatement* forSmt, void* data)
+void CodeGenerateVisitor::visit(NumericForStatement* forSmt, void* data)
 {
 	CodeWrite* writer = static_cast<CodeWrite*>(data);
 
-	auto start = forSmt->getChildByIndex(ForStatement::EStart);
-	auto end = forSmt->getChildByIndex(ForStatement::EEnd);
-	auto step = forSmt->getChildByIndex(ForStatement::EStep);
-	auto block = forSmt->getChildByIndex(ForStatement::EBlock);
+	auto start = forSmt->getChildByIndex(NumericForStatement::EStart);
+	auto end = forSmt->getChildByIndex(NumericForStatement::EEnd);
+	auto step = forSmt->getChildByIndex(NumericForStatement::EStep);
+	auto block = forSmt->getChildByIndex(NumericForStatement::EBlock);
 
 	Instruction* ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_EnterBlock;    //必须有这个，for后面的都是局部变量，for循环体中的更加是
 
 	CodeWrite for_writer;
 	block->accept(this, &for_writer);
-	ins = writer->newInstruction();
-	ins->op_code = Instruction::OpCode_GenerateBlock;
-	ins->param_a.type = InstructionParam::InstructionParamType_Value;
-	InstructionValue* valInsSet = for_writer.fetchInstructionVal();
-	ins->param_a.param.value = valInsSet;
 
 	if (step) step->accept(this, data);
 	if (end) end->accept(this, data);
@@ -480,8 +516,41 @@ void CodeGenerateVisitor::visit(ForStatement* forSmt, void* data)
 	}
 
 	ins = writer->newInstruction();
-	ins->op_code = Instruction::OpCode_For;
-	ins->param_a.param.counter.counter1 = (step == 0) ? 0 : 1;
+	ins->op_code = Instruction::OpCode_NumericFor;
+	ins->param.value = for_writer.fetchInstructionVal();
+	ins->param.counter.counter1 = (step == 0) ? 0 : 1;    //递增还是递减
+
+	ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_QuitBlock;
+}
+
+void CodeGenerateVisitor::visit(GenericForStatement* gforSmt, void* data)
+{
+	CodeWrite* writer = static_cast<CodeWrite*>(data);
+
+	auto nameList = gforSmt->getChildByIndex(0);
+	auto expList = gforSmt->getChildByIndex(1);
+	auto block = gforSmt->getChildByIndex(2);
+
+	Instruction* ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_EnterBlock;    //必须有这个，for后面的都是局部变量，for循环体中的更加是
+
+	CodeWrite for_writer;
+	block->accept(this, &for_writer);
+	InstructionValue* valInsSet = for_writer.fetchInstructionVal();
+
+	ExpVarData ed = { ExpVarData::VAR_GET };
+	generateNodeListCode(expList->getNextNode(), writer, ed.type);
+	
+	writer->paramRW = &ed;
+	expList->accept(this, data);       //这个是函数
+
+	generateNodeListCode(nameList, writer, ExpVarData::VAR_SET);     //k,v
+
+	ins = writer->newInstruction();
+	ins->op_code = Instruction::OpCode_GenericFor;
+	ins->param.value = valInsSet;
+	ins->param.counter.counter1 = nameList->getSiblings();
 
 	ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_QuitBlock;

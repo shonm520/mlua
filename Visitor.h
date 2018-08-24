@@ -24,6 +24,7 @@ public:
 	virtual void visit(TableIndexField* taSmt, void* data) = 0;
 	virtual void visit(TabMemberAccessor* tmsSmt, void* data) = 0;
 	virtual void visit(TabIndexAccessor* tmsSmt, void* data) = 0;
-	virtual void visit(ForStatement* forSmt, void* data) = 0;
+	virtual void visit(NumericForStatement* nforSmt, void* data) = 0;
+	virtual void visit(GenericForStatement* gforSmt, void* data) = 0;
 	virtual void visit(BreakStatement* brkSmt, void* data) = 0;
 };

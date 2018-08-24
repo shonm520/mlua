@@ -50,7 +50,8 @@ private:
 	Closure* getCurrentClosure();
 
 	void ifCompare(Instruction* ins);
-	void forCompare(Instruction* ins);
+	void numericFor(Instruction* ins);
+	void genericFor(Instruction* ins);
 	void breakFor(Instruction* ins);
 	void enterBlock(Instruction* ins);
 	void quitBlock(Instruction* ins);

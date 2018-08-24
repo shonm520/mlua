@@ -568,20 +568,27 @@ public:
 };
 
 
-class ForStatement : public SyntaxTreeNodeBase
+class NumericForStatement : public SyntaxTreeNodeBase
 {
 public:
-	ForStatement() : SyntaxTreeNodeBase()  {
+	NumericForStatement() : SyntaxTreeNodeBase()  {
 		_nodeKind = SyntaxTreeNodeBase::FOR_K;
 	}
 	void accept(Visitor* visitor, void* data);
 
 	enum eFor  {
-		EStart,
-		EEnd,
-		EStep,
-		EBlock
+		EStart,	EEnd, EStep,	EBlock
 	};
+private:
+};
+
+class GenericForStatement : public SyntaxTreeNodeBase
+{
+public:
+	GenericForStatement() : SyntaxTreeNodeBase()  {
+		_nodeKind = SyntaxTreeNodeBase::FOR_K;
+	}
+	void accept(Visitor* visitor, void* data);
 private:
 };
 

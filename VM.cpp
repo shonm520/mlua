@@ -163,8 +163,12 @@ int VM::runCode(InstructionValue* insSetVal)
 			ifCompare(ins);
 			break;
 
-		case Instruction::OpCode_For:
-			forCompare(ins);
+		case Instruction::OpCode_NumericFor:
+			numericFor(ins);
+			break;
+
+		case Instruction::OpCode_GenericFor:
+			genericFor(ins);
 			break;
 
 		case Instruction::OpCode_Break:
@@ -216,8 +220,8 @@ int VM::runCode(InstructionValue* insSetVal)
 
 void VM::generateClosure(Instruction* ins)
 {
-	assert(ins->param_a.param.value->Type() == Value::TYPE_FUNCTION);
-	Function *func = static_cast<Function *>(ins->param_a.param.value);
+	assert(ins->param.value->Type() == Value::TYPE_FUNCTION);
+	Function *func = static_cast<Function *>(ins->param.value);
 	Closure *cl = func->generateClosure(_state) ;
 	cl->setParentClosure(getCurrentClosure());
 	_stack->Push(cl);
@@ -230,7 +234,7 @@ void VM::add_global_table()
 
 void VM::call(Instruction* ins)
 {
-	int paramNum = ins->param_a.param.counter.counter1;
+	int paramNum = ins->param.counter.counter1;
 	Value* callee = _stack->popValue();
 
 	if (callee->Type() == Value::TYPE_NIL)  {
@@ -244,7 +248,7 @@ void VM::call(Instruction* ins)
 		Closure* cl = static_cast<Closure*>(callee)->clone();    //ÕâÀï±ØÐë¿ËÂ¡£¬£¬ÒòÎªÓÐµÝ¹éµ÷ÓÃº¯Êý
 		_stackClosure->Push(cl);
 		cl->setRealParamNum(paramNum);
-		cl->setNeedRetNum(ins->param_a.param.counter.counter2);
+		cl->setNeedRetNum(ins->param.counter.counter2);
 		runCode(cl->getPrototype());
 	}
 }
@@ -274,7 +278,7 @@ Closure* VM::getCurrentClosure()
 
 void VM::passFunParam(Instruction* ins)
 {
-	int needParamNum = ins->param_a.param.counter.counter1;
+	int needParamNum = ins->param.counter.counter1;
 	int realParamNum = getCurrentClosure()->getRealParamNum();
 	int n = needParamNum - realParamNum;
 	if (n > 0)  {
@@ -325,8 +329,8 @@ void VM::assignVals(int num_key, int num_val, int type)      //º¯Êýµ÷ÓÃ´«Èë²ÎÊýÊ
 
 void VM::initLocalVar(Instruction* ins)
 {
-	int num_key = ins->param_a.param.counter.counter1;
-	int num_val = ins->param_a.param.counter.counter2;
+	int num_key = ins->param.counter.counter1;
+	int num_val = ins->param.counter.counter2;
 	if (num_key == 1 && num_val == 1)  {
 		assignSimple(0);
 	}
@@ -337,8 +341,8 @@ void VM::initLocalVar(Instruction* ins)
 
 void VM::assignOperate(Instruction* ins)
 {
-	int num_key = ins->param_a.param.counter.counter1;
-	int num_val = ins->param_a.param.counter.counter2;
+	int num_key = ins->param.counter.counter1;
+	int num_val = ins->param.counter.counter2;
 	if (num_key == 1 && num_val == 1)  {
 		assignSimple(1);
 	}
@@ -360,7 +364,7 @@ void VM::assignSimple(int type)
 
 void VM::get_table(Instruction* ins)
 {
-	Value* key = ins->param_a.param.name;
+	Value* key = ins->param.name;
 	Table* table = getCurrentClosure()->getTopTable();
 	Value* val = table->GetValue(key);
 	if (val)  {
@@ -371,12 +375,12 @@ void VM::get_table(Instruction* ins)
 
 void VM::setLoacalVar(Instruction* ins)
 {
-	_stack->Push(ins->param_a.param.name);
+	_stack->Push(ins->param.name);
 }
 
 void VM::getLoacalVar(Instruction* ins)
 {
-	Value* key = ins->param_a.param.name;
+	Value* key = ins->param.name;
 	Value* val = nullptr;
 	if (getCurrentClosure()->findUpTables(key, &val, nullptr) != -1)  {
 		_stack->Push(val);
@@ -389,11 +393,11 @@ void VM::getLoacalVar(Instruction* ins)
 
 void VM::pushValue(Instruction* ins)
 {
-	if (ins->param_a.type == InstructionParam::InstructionParamType_Name)  {
-		_stack->Push(ins->param_a.param.name);
+	if (ins->type == InstructionParam::InstructionParamType_Name)  {
+		_stack->Push(ins->param.name);
 	}  
-	else if (ins->param_a.type == InstructionParam::InstructionParamType_Value)  {
-		_stack->Push(ins->param_a.param.value);
+	else if (ins->type == InstructionParam::InstructionParamType_Value)  {
+		_stack->Push(ins->param.value);
 	}
 }
 
@@ -455,7 +459,7 @@ void VM::operateLogic(Instruction* ins)
 
 void VM::funcionRet(Instruction* ins)
 {
- 	int num = ins->param_a.param.counter.counter1;
+ 	int num = ins->param.counter.counter1;
 	Closure* cl = getCurrentClosure();
 	cl->setRealRetNum(num);
 }
@@ -466,7 +470,7 @@ void VM::ifCompare(Instruction* ins)
 	InstructionValue* leftBlock = (InstructionValue*)_stack->popValue();
 
 	InstructionValue* rightBlock = nullptr;
-	if (ins->param_a.param.counter.counter1 > 0)  {
+	if (ins->param.counter.counter1 > 0)  {
 		rightBlock = (InstructionValue*)_stack->popValue();
 	}
 	bool runLeft = true;                //³ýÁËnilºÍfalseÆäËûÈ«Îªtrue
@@ -488,18 +492,18 @@ void VM::ifCompare(Instruction* ins)
 	}
 }
 
-void VM::forCompare(Instruction* ins)
+void VM::numericFor(Instruction* ins)
 {
-	Value* valStart = _stack->popValue();
+	Value* valStart = _stack->popValue();      //½«¿ØÖÆ±äÁ¿µÄÃûÑ¹ÈëÁËÕ»
 	Table* top = getCurrentClosure()->getTopTable();
 	Number* numStart = (Number*)top->GetValue(valStart);
 	int iStart = ((Number*)top->GetValue(valStart))->GetInteger();
 	int iEnd = ((Number*)_stack->popValue())->GetInteger();
 	int iStep = 1;
-	if (ins->param_a.param.counter.counter1 > 0)  {
+	if (ins->param.counter.counter1 > 0)  {
 		iStep = ((Number*)_stack->popValue())->GetInteger();
 	}
-	InstructionValue* block = (InstructionValue*)_stack->popValue();
+	InstructionValue* block = (InstructionValue*)ins->param.value;
 	block->setFor(true);
 
 	auto xInc = [](int i, int end) {return i <= end; };
@@ -510,13 +514,51 @@ void VM::forCompare(Instruction* ins)
 		xCmp = xDec;
 	}
 	for (int i = iStart; xCmp(i, iEnd); i += iStep)  {
-		numStart->SetNumber(i);
+		numStart->SetNumber(i);                    //¸Ä±äÄÚ²¿µÄiµÄÖµ
 		top->Assign(valStart, numStart);
 		runBlockCode(block);
 		if (block->getBreaked())  {
 			break;
 		}
 	}
+}
+
+void VM::genericFor(Instruction* ins)
+{
+	Value* ctrlKey = nullptr;
+	std::vector<Value*> vtKeys;
+	int num = ins->param.counter.counter1;
+	for (int i = 0; i < num; i++)  {
+		vtKeys.push_back(_stack->popValue());
+	}
+	ctrlKey = vtKeys[vtKeys.size() - 1];
+	Value* func    = _stack->popValue();
+	Value* ctrlVal = _stack->popValue();
+	Value* data    = _stack->popValue();
+	
+	do  {
+		_stack->Push(data);
+		_stack->Push(ctrlVal);
+		_stack->Push(func);
+
+		Instruction insCall;
+		insCall.param.counter.counter1 = 2;
+		insCall.param.counter.counter2 = num;
+		call(&insCall);
+
+		for (int i = num - 1; i >=0; i--)  {
+			_stack->Push(vtKeys[i]);
+		}
+
+		assignVals(num, num, 0);
+
+		ctrlVal = getCurrentClosure()->getTopTable()->GetValue(ctrlKey);
+		if (ctrlVal->Type() == Value::TYPE_NIL)  {  //¿ØÖÆÖµÎªnil
+			break;
+		}
+
+		runBlockCode(ins->param.value);
+	} while (true);
 }
 
 void VM::breakFor(Instruction* ins)
@@ -562,14 +604,14 @@ void VM::runBlockCode(Value* val)
 
 void VM::generateBlock(Instruction* ins)
 {
-	Value* val = ins->param_a.param.value;
+	Value* val = ins->param.value;
 	_stack->Push(val);
 }
 
 void VM::tableDefine(Instruction* ins)
 {
 	Table* tab = new Table();
-	for (int i = 0; i < ins->param_a.param.counter.counter1; i++)  {
+	for (int i = 0; i < ins->param.counter.counter1; i++)  {
 		Value* key = _stack->popValue();
 		Value* val = _stack->popValue();
 		tab->Assign(key, val);
@@ -579,8 +621,8 @@ void VM::tableDefine(Instruction* ins)
 
 void VM::tableArrIndex(Instruction* ins)
 {
-	int index = ins->param_a.param.array_index;
-	_stack->Push(new Number(index));
+// 	int index = ins->param.array_index;
+// 	_stack->Push(new Number(index));
 }
 
 void VM::tableAccess(Instruction* ins)
@@ -589,7 +631,7 @@ void VM::tableAccess(Instruction* ins)
 	Value* member = _stack->popValue();
 	Value* tab = nullptr;
 	Value* val = nullptr;
-	std::string stFiled = ((String*)(ins->param_a.param.value))->Get();
+	std::string stFiled = ((String*)(ins->param.value))->Get();
 
 	if (tabName->Type() == Value::TYPE_TABLE)  {    //a.b.c ÄÇÃ´a.b¾ÍÊÇtable
 		val = ((Table*)tabName)->GetValue(member);

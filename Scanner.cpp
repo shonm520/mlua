@@ -128,6 +128,7 @@ string Scanner::detailType2Lexeme(TokenType_Detail detail)
 		lexeme = "if";
 		break;
 	case Scanner::Token_In:
+		lexeme = "in";
 		break;
 	case Scanner::Token_Local:
 		lexeme = "local";

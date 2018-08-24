@@ -143,6 +143,8 @@ private:
 	TreeNode * parse_local_nameList();
 
 	TreeNode * parse_for_statement();
+	TreeNode * parse_numeric_for_statement();
+	TreeNode * parse_generic_for_statement();
 
     void printSyntaxTree(TreeNode *tree, int dep = 1);
 public:
