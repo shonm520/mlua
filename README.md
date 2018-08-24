@@ -5,7 +5,7 @@ An interpreter of lua-like language written in C++
 
 windows:  用vs2013以上版本直接打开mlua.vcxproj文件即可。因为使用到了c++11语法，所以需要vs2013及以上版本。
 
-Linux：   待续
+Linux :  待续
 
 目前已实现了lua的大部分语句，包括if语句，函数，闭包，table，for循环等。 虚拟机目前是基于栈的。
 
@@ -68,7 +68,7 @@ print(20)
 ```
 
 下一步：
-+ 实现for, while等复合语句
+
 + 注释还是C++格式的，单行//，多行 /* */，要改成lua的--
 + 为了快速出结果，堆变量没有释放，有内存泄露，这个要处理好
 + 还没有垃圾回收GC，这个以后要加上去
