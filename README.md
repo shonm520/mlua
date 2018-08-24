@@ -1,7 +1,7 @@
 # mlua
 An interpreter of lua-like language written in C++ 
 
-## 安装：
+### 安装：
 
 windows:  用vs2013以上版本直接打开mlua.vcxproj文件即可。因为使用到了c++11语法，所以需要vs2013及以上版本。
 
