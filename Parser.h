@@ -24,6 +24,8 @@ public:
         INT_CONST_K, CHAR_CONST_K, STRING_CONST_K, KEY_WORD_CONST, THIS_K
     };
 
+	friend class BaseLib;
+
  	typedef SyntaxTreeNodeBase TreeNode;
 
 	typedef Scanner::Token Token;
@@ -45,20 +47,20 @@ public:
 			_pScanner = ps;
 		}
 
-		static void _add(int& n, int step = 1)  {
+		static void increase(int& n, int step = 1)  {
 			n = (n + Cap + step) % Cap;
 		}
 
-		static bool _eq(int cur, int top)  {
+		static bool isEqual(int cur, int top)  {
 			return cur == top;
 		}
 
 		Scanner::Token getCurrent()  {
-			_add(_cur);
-			if (_eq(_cur, _top))  {
+			increase(_cur);
+			if (isEqual(_cur, _top))  {
 				Scanner::Token token = _pScanner->nextToken();
 				_member[_top] = token;
-				_add(_top);
+				increase(_top);
 			}
 			resetPeek();
 			return _member[_cur];
@@ -68,11 +70,11 @@ public:
 			if (reset)  {
 				resetPeek();
 			}
-			_add(_peek);
-			if (_eq(_peek, _top))  {
+			increase(_peek);
+			if (isEqual(_peek, _top))  {
 				Scanner::Token token = _pScanner->nextToken();
 				_member[_top] = token;
-				_add(_top);
+				increase(_top);
 			}
 			return _member[_peek];
 		}
@@ -81,12 +83,13 @@ public:
 			_peek = _cur;
 		}
 		void back(int step = 1)  {
-			_add(_cur, step * -1);
+			increase(_cur, step * -1);
 		}
 	};
 private:
-    vector<string> _vtfilenames;
-    string _strCurParserFileName;
+    vector<string> _vtFileNames;
+	bool _parseString;
+    string _strCurFileName;
     TreeNode *_pSyntaxTree;
     Scanner _scanner;
     bool _hasRetStatement;                              // 要保证每个函数都有return语句, 即使返回值为void
@@ -101,12 +104,6 @@ private:
 
     TreeNode * parse_chunk_list();
     TreeNode * parse_chunk();
-
-    TreeNode * parse_type();
-
-    TreeNode * parse_params();
-    TreeNode * parse_param_list();
-    TreeNode * parse_param();
 	TreeNode * parse_var_name(bool bList);
 	TreeNode * parse_var_name_list();
 	TreeNode * parse_statements();
@@ -147,7 +144,9 @@ private:
 	TreeNode * parse_generic_for_statement();
 
     void printSyntaxTree(TreeNode *tree, int dep = 1);
+
 public:
+	Parser();
     Parser(vector<string> & filenames);
     bool hasError();
     TreeNode *getSyntaxTree();
@@ -155,7 +154,6 @@ public:
     void parse_program();
     static string getCallerName(string fullName);
     static string getFunctionName(string fullName);
-	static bool isBasicType(string);    //是否是基本类型
 };
 
 #endif

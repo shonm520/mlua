@@ -9,11 +9,17 @@ using namespace std;
 
 #define  SafeDelete(p) if(p) delete p; 
 
+Parser::Parser()
+{
+	_parseString = true;
+}
+
 Parser::Parser(vector<string> &filenames)
 {
-	this->_vtfilenames = filenames;
+	_vtFileNames = filenames;
 	_pSyntaxTree = nullptr;
 	_cirQueue.SetScanner(&_scanner);
+	_parseString = false;
 }
 
 Scanner::Token Parser::getToken()
@@ -32,13 +38,13 @@ bool Parser::eatExpectedToken(Token token, Scanner::Token* pToken)
 	Scanner::Token t = getToken();
 	if (token.kind == Scanner::ID)  {    //ÆÚ´ýÒ»¸ö±äÁ¿±êÊ¶·û
 		if (t.kind != Scanner::ID)  {
-			syntaxError(_strCurParserFileName, "identifier", t);
+			syntaxError(_strCurFileName, "identifier", t);
 			return false;
 		}
 	}
 	else  {       //ÆÚ´ýÒ»¸ö·ûºÅ,ÀýÈç",("µÈ
 		if (t.lexeme != token.lexeme)  {
-			syntaxError(_strCurParserFileName, token.lexeme, t);
+			syntaxError(_strCurFileName, token.lexeme, t);
 			return false;
 		}
 	}
@@ -56,7 +62,7 @@ Scanner::Token Parser::peekToken(bool reset)
 
 string Parser::getFullName(string name)
 {
-	string fullname = _strCurParserFileName + "." + name;
+	string fullname = _strCurFileName + "." + name;
 	return fullname;
 }
 
@@ -82,13 +88,6 @@ string Parser::getFunctionName(string fullName)
 	return string(++iter, fullName.cend());
 }
 
-bool Parser::isBasicType(string type)
-{
-	if (type == "int" || type == "char" || type == "boolean" || type == "string")  {
-		return true;
-	}
-	return false;
-}
 
 void Parser::parse_program()
 {
@@ -99,22 +98,22 @@ Parser::TreeNode *Parser::parse_chunk_list()
 {
 	TreeNode *p = nullptr;
 	TreeNodeList nodeList;
-	for (auto filenameIter = _vtfilenames.cbegin(); filenameIter != _vtfilenames.cend(); ++filenameIter) {
-		int ret = _scanner.openFile(*filenameIter);
+	for (auto it = _vtFileNames.cbegin(); it != _vtFileNames.cend(); ++it) {
+		int ret = _scanner.openFile(*it);
 		if (ret != 0) continue;
-		auto classNameIter = filenameIter->rbegin();
+		auto classNameIter = it->rbegin();
 		int begin = 0;
-		while (classNameIter != filenameIter->rend()) {
+		while (classNameIter != it->rend()) {
 			if (*classNameIter == '/')
 				break;
 			begin++;
 			++classNameIter;
 		}
-		_strCurParserFileName = *filenameIter;
+		_strCurFileName = *it;
 		_scanner.resetRow();
 		TreeNode *q = parse_chunk();
 		if (getToken().kind != Scanner::ENDOFFILE)
-			cerr << "Syntax Error in file " << _strCurParserFileName << ": unexpected token before EOF " << endl;
+			cerr << "Syntax Error in file " << _strCurFileName << ": unexpected token before EOF " << endl;
 		nodeList.Push(q);
 		_scanner.closeFile();
 	}
@@ -148,7 +147,7 @@ Parser::TreeNode *Parser::parse_block()
 		}
 		else {
 			if (has_return)  {
-				syntaxError(_strCurParserFileName, "unexpect statement after return statement", peekToken(true));
+				syntaxError(_strCurFileName, "unexpect statement after return statement", peekToken(true));
 				return nullptr;
 			}
 		}
@@ -248,7 +247,7 @@ Parser::TreeNode *Parser::parse_access_table_Field(SyntaxTreeNodeBase* table_pre
 				filed = new IdentifierNode(table_field);
 			}
 			else  {
-				syntaxError(_strCurParserFileName, "id or number ,string", table_field);
+				syntaxError(_strCurFileName, "id or number ,string", table_field);
 			}
 			tab_sum->addChild( filed, 1);
 			table_prefix = tab_sum;
@@ -257,71 +256,6 @@ Parser::TreeNode *Parser::parse_access_table_Field(SyntaxTreeNodeBase* table_pre
 		token = peekToken(true);
 	}
 	return tab_sum;
-}
-
-Parser::TreeNode *Parser::parse_type()
-{
-	TreeNode *t = nullptr;
-	Scanner::Token token = getToken();
-	if (token.kind == Scanner::ID) {
-		t = new TreeNode(CLASS_TYPE_K);
-		t->setNodeKind(CLASS_TYPE_K);
-		t->setLexeme(token.lexeme);
-	}
-	else if (token.lexeme == "int" ||
-		     token.lexeme == "char" ||
-			 token.lexeme == "boolean" ||
-			 token.lexeme == "void")  {
-		t = new TreeNode(BASIC_TYPE_K);
-		t->setLexeme(token.lexeme);
-	}
-	else {
-		syntaxError(_strCurParserFileName, "basic type or class type", token);
-		return t;
-	}
-	return t;
-}
-
-Parser::TreeNode *Parser::parse_params()
-{
-	TreeNode *t = nullptr;
-	Scanner::Token token = peekToken(true);
-	if (token.lexeme != ")") {
-		t = parse_param_list();
-	}
-	return t;
-}
-
-Parser::TreeNode *Parser::parse_param_list()
-{
-	TreeNode *t = parse_param();
-	TreeNodeList nodeList;
-	nodeList.Push(t);
-	Scanner::Token token = peekToken(true);
-	while (token.lexeme == ",") {
-		eatExpectedToken(token);
-		TreeNode *q = parse_param();
-		nodeList.Push(q);
-		token = peekToken(true);
-	}
-	return nodeList.getHeadNode();
-}
-
-Parser::TreeNode *Parser::parse_param()
-{
-	TreeNode *t = new TreeNode(PARAM_K);
-	t->addChild(parse_type(), 0);                 //ÀàÐÍ
-	Scanner::Token token = getToken();
-	if (token.kind == Scanner::ID) {
-		auto node = new TreeNode;;
-		node->setToken(token);
-		t->addChild(node, 1);                    //Öµ
-	}
-	else {
-		syntaxError(_strCurParserFileName, "identifier", token);
-		return t;
-	}
-	return t;
 }
 
 Parser::TreeNode *Parser::parse_statements()    //½âÎöÒ»¸ö¿éÀïµÄËùÓÐÓï¾ä,°üÀ¨ÉùÃ÷¸³Öµµ÷ÓÃ,×ÓÓï¾ä
@@ -367,7 +301,7 @@ Parser::TreeNode *Parser::parse_statements()    //½âÎöÒ»¸ö¿éÀïµÄËùÓÐÓï¾ä,°üÀ¨ÉùÃ
 			return new BreakStatement();
 		}
 		if (token.kind != Scanner::ID)  {
-			syntaxError(_strCurParserFileName, "a Identifier", token);
+			syntaxError(_strCurFileName, "a Identifier", token);
 			return nullptr;
 		}
 		SyntaxTreeNodeBase* node = parse_var_name(true);
@@ -415,7 +349,7 @@ Parser::TreeNode *Parser::parse_local_statement()
 		return parse_local_nameList();
 	}
 	else  {
-		syntaxError(_strCurParserFileName, "unexpect token after \'local\'", token);
+		syntaxError(_strCurFileName, "unexpect token after \'local\'", token);
 		return nullptr;
 	}
 	return nullptr;
@@ -456,76 +390,6 @@ Parser::TreeNode *Parser::parse_assign_statement_lua(SyntaxTreeNodeBase* left_va
 	t->addChild(right_exps, AssignStatement::AssignRight);
 	return t;
 }
-
-/*Parser::TreeNode *Parser::parse_statement()
-{
-	TreeNode *t = nullptr;
-	Scanner::Token token = peekToken(true);
-	if (token.lexeme == "if") {
-		t = parse_if_statement();
-	}
-	else if (token.lexeme == "while") {
-		t = parse_while_statement();
-	}
-	else if (token.lexeme == "return") {
-		t = parse_return_statement();
-	}
-	else if (token.kind == Scanner::ID) {
-		token = peekToken(false);
-		if (token.lexeme == "=" || token.lexeme == "[") {
-			t = parse_assign_statement();
-		}
-		else if (token.lexeme == "(" || token.lexeme == ".") {
-			t = parse_call_statement(nullptr);
-			if (!eatExpectedToken(Token(Scanner::Token_Semicolon)))  {
-				return t;
-			}
-		}
-		else {
-			syntaxError(_strCurParserFileName, "'=' or '[' or '(' or '.'", token);
-			return t;
-		}
-	}
-	else {
-		syntaxError(_strCurParserFileName, "identifier", token);
-		return t;
-	}
-	return t;
-}*/
-
-/*Parser::TreeNode *Parser::parse_assign_statement()
-{
-	TreeNode *t = new AssignStatement();
-	TreeNode* left_val = parse_left_value();
-	t->addChild(left_val, AssignStatement::AssignLetf);
-	Scanner::Token token = getToken();
-	t->addChild(parse_expression(), AssignStatement::AssignRight);
-	token = getToken();
-	if (token.lexeme != ";" && token.lexeme != ",") {      //¸³ÖµÓï¾äÖ®ºóÒ²ÓÐ¿ÉÄÜÊÇ,ÀýÈçint a= 1, b=2;
-		syntaxError(_strCurParserFileName, ";", token);
-		return t;
-	}
-	return t;
-}*/
-
-/*Parser::TreeNode *Parser::parse_left_value()
-{
-	TreeNode *t = new TreeNode(VAR_K);
-	Scanner::Token token = getToken();
-	t->setToken(token);
-	token = getToken();
-	if (token.lexeme == "[") {
-		t->setNodeKind(ARRAY_K);
-		t->addChild(parse_expression(), 0);
-		if (!eatExpectedToken(Token(Scanner::Token_RightSquareBracket)))  {
-			return t;
-		}
-	}
-	else if (token.lexeme == "=") {
-		ungetToken();
-	}
-	return t;
-}*/
 
 Parser::TreeNode *Parser::parse_if_statement()
 {
@@ -860,7 +724,7 @@ Parser::TreeNode* Parser::parse_numeric_for_statement()     //for Name = exp , e
 		eatExpectedToken(Token(Scanner::Token_For));
 		Scanner::Token token = getToken();
 		if (token.kind != Scanner::ID)  {
-			syntaxError(_strCurParserFileName, "identifier", token);
+			syntaxError(_strCurFileName, "identifier", token);
 			break;
 		}
 		TreeNode *start = new IdentifierNode(token);
