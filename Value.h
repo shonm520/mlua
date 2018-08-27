@@ -8,27 +8,7 @@ class String;
 class Function;
 struct Value
 {
-// 	union  {
-// 		double num_;
-// 		bool bvalue_;
-// 		String* str_;
-// 		Closure *closure_;
-// 		Function* fun_;
-// 	};
-
-	enum ValueT
-	{
-// 		ValueT_Nil,
-// 		ValueT_Bool,
-// 		ValueT_Number,
-// 		ValueT_Obj,
-// 		ValueT_String,
-// 		ValueT_Closure,
-// 		ValueT_Upvalue,
-// 		ValueT_Table,
-// 		ValueT_UserData,
-// 		ValueT_CFunction,
-
+	enum ValueT  {
 		TYPE_NIL,
 		TYPE_BOOL,
 		TYPE_NUMBER,

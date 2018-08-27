@@ -12,6 +12,7 @@ Scanner::Scanner()
 {
     _row = 0;
     _nBufferPos = 0;
+	_parseString = false;
     initKeyWords();
     initSymbols();
 }
@@ -227,23 +228,32 @@ Scanner::TokenType Scanner::searchReserved(string &s)
 
 char Scanner::nextChar()
 {
-    if (_nBufferPos >= _strLineBuffer.size())
-    {
-        _row++;
-        getline(_fIn, _strLineBuffer);
-        _strLineBuffer += '\n';
-        if (!_fIn.fail())
-        {
-            _nBufferPos = 0;
-            return _strLineBuffer[_nBufferPos++];
-        }
-        else
-            return EOF;
-    }
-    else
-    {
-        return _strLineBuffer[_nBufferPos++];
-    }
+	if (_parseString)  {
+		_strLineBuffer = _stringCode;
+		if (_nBufferPos > _stringCode.size())   {
+			return EOF;
+		}
+		else  {
+			return _strLineBuffer[_nBufferPos++];
+		}
+	}
+	else  {
+		if (_nBufferPos >= _strLineBuffer.size())  {
+			_row++;
+			getline(_fIn, _strLineBuffer);
+			_strLineBuffer += '\n';
+			if (!_fIn.fail())  {
+				_nBufferPos = 0;
+				return _strLineBuffer[_nBufferPos++];
+			}
+			else  {
+				return EOF;
+			}
+		}
+		else  {
+			return _strLineBuffer[_nBufferPos++];
+		}
+	}
 }
 
 void Scanner::rollBack()

@@ -524,9 +524,9 @@ void CodeGenerateVisitor::visit(GenericForStatement* gforSmt, void* data)
 	if (expList->getNodeKind() == NormalCallFunciton::FUNCTION_CALL_K)  {
 		((NormalCallFunciton*)expList)->_needRetNum = 3;
 	}
-	expList->accept(this, data);       //这个是函数
+	expList->accept(this, data);       //这个是迭代函数
 
-	generateNodeListCode(expList->getNextNode(), writer, ed.type);   //先压入参数
+	generateNodeListCode(expList->getNextNode(), writer, ed.type);   //压入参数
 
 	generateNodeListCode(nameList, writer, ExpVarData::VAR_SET);     //k,v
 

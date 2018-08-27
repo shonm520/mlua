@@ -4,59 +4,7 @@
 #include "State.h"
 #include "Function.h"
 #include "Stack.h"
-
-
-
-
-
-
-void PrintType(Value* val)
-{
-	if (val->Type() == Value::TYPE_STRING)  {
-		printf("%s", ((String*)val)->Get().c_str());
-	}
-	else if (val->Type() == Value::TYPE_NUMBER)  {
-		if (((Number*)val)->IsInteger())  {
-			printf("%d", ((Number*)val)->GetInteger());
-		}
-		else  {
-			printf("%f", ((Number*)val)->Get());
-		}
-	}
-	else if (val->Type() == Value::TYPE_NIL)  {
-		printf("nil");
-	}
-	else if (val->Type() == Value::TYPE_CLOSURE)  {
-		printf("funciont: 0x%08x", val);
-	}
-	else if (val->Type() == Value::TYPE_TABLE)  {
-		printf("table: 0x%08x", val);
-	}
-}
-
-
-
-
-
-int Print(State* state, void* num_)
-{
-	std::vector<Value*> vtVals;
-	int num = state->getStack()->Size();
-	for (int i = (int)num - 1; i >= 0; i--)   {
-		Value* val = state->getStack()->popValue();
-		vtVals.push_back(val);
-	}
-
-	for (int i = (int)num - 1; i >= 0; i--)   {
-		Value* val = vtVals[i];
-		if (val)  {
-			PrintType(val);
-		}
-		printf("\t");
-	}
-	printf("\n");
-	return 0;
-}
+#include "libs/BaseLib.h"
 
 
 
@@ -70,6 +18,7 @@ VM::VM(State* state)
 {
 	_stack = _state->getStack();
 	registerFunc();
+	_state->setVM(this);
 }
 
 
@@ -90,7 +39,8 @@ void VM::execute_frame()
 
 void VM::registerFunc()
 {
-	_state->registerFunc(Print);
+	_state->registerFunc("print", BaseLib::Print);
+	_state->registerFunc("pairs", BaseLib::generatePairs);
 }
 
 
@@ -258,9 +208,9 @@ Closure* VM::getCurrentClosure()
 void VM::passFunParam(Instruction* ins)                      //其实这个也可以用OpCode_InitLocalVar代替
 {
 	int needParamNum = ins->param.counter.counter1;
-	int realParamNum = getCurrentClosure()->getActParamNum();
+	int actParamNum = getCurrentClosure()->getActParamNum();
 	
-	assignVals(needParamNum, realParamNum, 0);               //如果压入的值比参数多，后面会处理掉
+	assignVals(needParamNum, actParamNum, 0);               //如果压入的值比参数多，后面会处理掉
 }
 
 void VM::assignVals(int num_key, int num_val, int type)      //函数调用传入参数时也会调用这里
@@ -494,6 +444,9 @@ void VM::genericFor(Instruction* ins)
 		vtKeys.push_back(_stack->popValue());
 	}
 	ctrlKey = vtKeys[vtKeys.size() - 1];
+	while (_stack->Size() > 3)  {      //只要三个数据
+		_stack->popValue();
+	}
 	Value* ctrlVal = _stack->popValue();
 	Value* data    = _stack->popValue();
 	Value* func = _stack->popValue();

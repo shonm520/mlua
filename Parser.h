@@ -10,7 +10,6 @@
 #include "Error.h"
 #include "GramTreeNode.h"
 
-using namespace std;
 
 
 class Parser
@@ -88,7 +87,6 @@ public:
 	};
 private:
     vector<string> _vtFileNames;
-	bool _parseString;
     string _strCurFileName;
     TreeNode *_pSyntaxTree;
     Scanner _scanner;
@@ -146,7 +144,7 @@ private:
     void printSyntaxTree(TreeNode *tree, int dep = 1);
 
 public:
-	Parser();
+	Parser(string str);
     Parser(vector<string> & filenames);
     bool hasError();
     TreeNode *getSyntaxTree();

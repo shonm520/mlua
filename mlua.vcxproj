@@ -78,6 +78,7 @@
     <ClCompile Include="Value.cpp" />
     <ClCompile Include="Visitor.cpp" />
     <ClCompile Include="VM.cpp" />
+    <ClCompile Include="libs/BaseLib.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Analyzer.h" />

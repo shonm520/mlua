@@ -5,21 +5,23 @@
 #include <vector>
 #include <string>
 
-using namespace std;
 
 #define  SafeDelete(p) if(p) delete p; 
 
-Parser::Parser()
+Parser::Parser(string str)
 {
-	_parseString = true;
+	_pSyntaxTree = nullptr;
+	_scanner.setParseString(true);
+	_scanner.setStringCode(str);
+	_cirQueue.SetScanner(&_scanner);
 }
 
 Parser::Parser(vector<string> &filenames)
 {
 	_vtFileNames = filenames;
 	_pSyntaxTree = nullptr;
+	_scanner.setParseString(false);
 	_cirQueue.SetScanner(&_scanner);
-	_parseString = false;
 }
 
 Scanner::Token Parser::getToken()

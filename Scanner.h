@@ -95,7 +95,10 @@ public:
 	
     void initKeyWords();
     void initSymbols();
+
 private:
+	string _stringCode;
+	bool _parseString;                      //是解析文件还是string
     string _strLineBuffer;					// 缓冲行, 保存源程序中的一行数据
     unsigned _nBufferPos;					// 缓冲行的指针
     unsigned _row;					     	// 保存当前缓冲行在源程序中的行号
@@ -113,12 +116,15 @@ private:
 	void procCharState(char ch, Token& token, Scanner::State& state);
 	void procSymbolState(char ch, Token& token, Scanner::State& state);
 	void procCommentState(char ch, Token& token, Scanner::State& state);
+
 public:
     Scanner();
     int openFile(string filename);
     void closeFile();
     Token nextToken();					  // 返回下一个Token
     void resetRow();
+	void setParseString(bool b) { _parseString = b; }
+	void setStringCode(string& str)  { _stringCode = str; }
 };
 
 #endif
