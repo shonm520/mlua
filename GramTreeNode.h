@@ -4,6 +4,7 @@
 #include <stack>
 #include <vector>
 #include <cassert>
+#include <string.h>
 using std::string;
 using std::stack;
 using std::vector;

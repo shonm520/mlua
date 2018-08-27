@@ -1,6 +1,7 @@
 #pragma once
 #include <list>
 #include "Value.h"
+#include "VM.h"
 
 
 

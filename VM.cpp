@@ -50,7 +50,7 @@ int VM::runCode(InstructionValue* insSetVal)
 {
 	insSetVal->setParent(_curInsVal);
 	_curInsVal = insSetVal;
-	auto& vtIns = insSetVal->getInstructionSet()->toVtInstructions();
+	auto vtIns = insSetVal->getInstructionSet()->toVtInstructions();
 	for (auto it = vtIns.begin(); it != vtIns.end(); ++it)  {
 		if (insSetVal->getBreaked())  {
 			printf("breaked!!!\n");
