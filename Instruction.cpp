@@ -38,7 +38,8 @@ std::vector<Instruction*> InstructionSet::toVtInstructions() {
 
 Instruction* InstructionSet::newInstruction()
 {
-	Instruction* ins = &_instructions[_num+memset(ins, 0, sizeof(Instruction));
+	Instruction* ins = &_instructions[_num++];
+	memset(ins, 0, sizeof(Instruction));
 	return ins;
 }
 
