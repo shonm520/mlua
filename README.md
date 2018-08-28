@@ -6,7 +6,7 @@ git clone https://github.com/shonm520/mlua.git
 
 windows:  用vs2013以上版本直接打开mlua.vcxproj文件即可。因为使用到了c++11语法，所以需要vs2013及以上版本。
 
-Linux :  g++  *.cpp libs/*.cpp -o mlua -std=c++11
+Linux :  g++  \*.cpp libs/\*.cpp -o mlua -std=c++11
 
 目前已实现了lua的大部分语句，包括if语句，函数，闭包，table，for循环等。 虚拟机目前是基于栈的。
 
