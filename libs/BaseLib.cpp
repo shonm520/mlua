@@ -60,6 +60,30 @@ int BaseLib::generatePairs(State* state, void*)
 {
 	std::string strPairs =
 		"local ipairsIter = function(t, i) \
+								i = i + 1\
+								local k, v = next(t, i) \
+								if v then return k, v end \
+							end\
+				return ipairsIter";
+	Parser parse(strPairs);
+	TreeNode* root = parse.parse_block();
+
+	CodeGenerateVisitor codeGen;
+	CodeWrite pairs;
+	root->accept(&codeGen, &pairs);
+
+	InstructionValue* func = pairs.fetchInstructionVal();
+	Value* t = state->getStack()->popValue();
+	state->getVM()->runCode(func);
+	state->getStack()->Push(t);
+	state->getStack()->Push(new Number(-1));
+	return 0;
+}
+
+int BaseLib::generateIPairs(State* state, void*)
+{
+	std::string strPairs =
+		"local ipairsIter = function(t, i) \
 								i = i + 1 \
 								local v = t[i] \
 								if v then return i, v end \
@@ -77,5 +101,28 @@ int BaseLib::generatePairs(State* state, void*)
 	state->getVM()->runCode(func);
 	state->getStack()->Push(t);
 	state->getStack()->Push(new Number(0));
+	return 0;
+}
+
+
+int BaseLib::next(State* state, void*)
+{
+	Number* num = (Number*)state->getStack()->popValue();
+	int i = num->GetInteger();
+	Table* tab = (Table*)state->getStack()->popValue();
+	Value* key;
+	Value* val = tab->getNextValue(i, &key);
+	if (i < tab->GetArraySize())  {
+		key = new Number(i);
+	}
+	if (val)  {
+		state->getStack()->Push(key);
+		state->getStack()->Push(val);
+	}
+	else  {
+		state->getStack()->Push(new Nil());
+		state->getStack()->Push(new Nil());
+		//printf("invalid key to \'next\'\n");
+	}
 	return 0;
 }

@@ -154,6 +154,7 @@ public:
 	void Assign(const Value *key, TableValue *table_value);
 
 	Table* clone();
+	Value* getNextValue(int i, Value** key);
 
 
 private:

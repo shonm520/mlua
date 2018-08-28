@@ -194,6 +194,27 @@ bool Table::ArrayHasKey(const Value *key) const
 	return true;
 }
 
+Value* Table::getNextValue(int i, Value** key )
+{
+	if (i < 0)  {
+		return nullptr;
+	}
+	if (i < _array->size())  {     //数组型
+		return ((*_array)[i])->GetValue();
+	}
+	else  {       //字段型
+		i = i - _array->size();
+		int c = 0;
+		for (auto it = _hash_table->begin(); it != _hash_table->end(); ++it)  {
+			if (c++ == i)  {
+				*key = (Value*)it->first;
+				return it->second->GetValue();
+			}
+		}
+	}
+	return nullptr;
+}
+
 
 Table* Table::clone()
 {
