@@ -281,7 +281,7 @@ Scanner::State Scanner::procStartState(char ch, Token& token)
 		token.kind = SYMBOL;
 		token.lexeme += ch;
 	}
-	else if (ch == '"')  {
+	else if (ch == '"' || ch == '\'')  {
 		state = STATE_STRING;	// ½øÈë×Ö·û´®×´Ì¬
 		token.kind = STRING;
 	}
@@ -325,7 +325,7 @@ bool Scanner::procIdentityState(char ch, Token& token)
 void Scanner::procStringState(char ch, Token& token, Scanner::State& state)
 {
 	if (state == STATE_STRING)  {
-		if (ch == '"')  {            //½áÊø½âÎö×Ö·û´®
+		if (ch == '"' || ch == '\'')  {            //½áÊø½âÎö×Ö·û´®
 			state = STATE_DONE;
 		}
 		else if (ch == '\\')  {      //¿ªÊ¼»ò½áÊø×Ó×Ö·û´®
@@ -492,7 +492,7 @@ Scanner::Token Scanner::nextToken()
 		case STATE_CHAR_A:
 		case STATE_CHAR_B:
 		case STATE_CHAR_C:
-			procCharState(ch, token, state);
+			procStringState(ch, token, state);
 			break;
 
         case STATE_STRING:										// ×Ö·û´®×´Ì¬
