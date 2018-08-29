@@ -86,6 +86,7 @@ public:
 	std::size_t GetHash() const  { return std::hash<std::string>()(_value); }
 
 	String* concat(String* other);
+	int getLen() { return _value.length(); }
 
 private:
 	std::string _value;
@@ -158,6 +159,8 @@ public:
 
 	Table* clone();
 	Value* getNextValue(int i, Value** key);
+
+	int getLen();
 
 
 private:

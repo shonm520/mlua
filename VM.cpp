@@ -141,6 +141,9 @@ int VM::runCode(InstructionValue* insSetVal)
 		case Instruction::OpCode_Negative:
 			negNumber(ins);
 			break;
+		case Instruction::OpCode_Length:
+			lenOfVale(ins);
+			break;
 		default:
 			break;
 		}
@@ -598,4 +601,19 @@ void VM::negNumber(Instruction* ins)
 	double num = val->Get() * -1;
 	val->SetNumber(num);
 	_stack->Push(val);
+}
+
+void VM::lenOfVale(Instruction* ins)
+{
+	Value* val = _stack->popValue();
+	Number* len = new Number(0);
+	if (val->Type() == Value::TYPE_STRING) {
+		int l = ((String*)val)->getLen();
+		len->SetNumber(l);
+	}
+	else if (val->Type() == Value::TYPE_TABLE)  {
+		int l = ((Table*)val)->getLen();
+		len->SetNumber(l);
+	}
+	_stack->Push(len);
 }

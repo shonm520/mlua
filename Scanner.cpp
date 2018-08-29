@@ -93,6 +93,7 @@ void Scanner::initSymbols()
     m_vtStrSymbols.insert("==");
     m_vtStrSymbols.insert("!=");
 	m_vtStrSymbols.insert("..");
+	m_vtStrSymbols.insert("#");
 }
 
 string Scanner::detailType2Lexeme(TokenType_Detail detail)

@@ -233,3 +233,10 @@ Table* Table::clone()
 	return nullptr;
 }
 
+int Table::getLen()
+{
+	if (_array)  {
+		return _array->size();
+	}
+	return 0;
+}

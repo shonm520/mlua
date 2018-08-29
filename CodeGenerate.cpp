@@ -158,7 +158,12 @@ void CodeGenerateVisitor::visit(UnaryExpression* uexp, void* data)
 
 	CodeWrite* writer = static_cast<CodeWrite*>(data);
 	Instruction* ins = writer->newInstruction();
-	ins->op_code = Instruction::OpCode_Negative;
+	if (uexp->getLexeme() == "-")  {
+		ins->op_code = Instruction::OpCode_Negative;
+	}
+	else if (uexp->getLexeme() == "#")  {
+		ins->op_code = Instruction::OpCode_Length;
+	}
 }
 
 

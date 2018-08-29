@@ -63,6 +63,6 @@ private:
 	void tableArrIndex(Instruction* ins);
 
 	void negNumber(Instruction* ins);
-
+	void lenOfVale(Instruction* ins);
 };
 

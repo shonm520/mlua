@@ -637,10 +637,10 @@ Parser::TreeNode *Parser::parse_factor()
 {
 	TreeNode *t = nullptr;
 	Scanner::Token token = peekToken(true);
-	if (token.lexeme == "-") {
+	if (token.lexeme == "-" || 
+		token.lexeme == "#") {
 		eatExpectedToken(token);
 		t = new UnaryExpression(token);
-		t->setToken(token);
 		t->addChild(parse_positive_factor(), 0);
 	}
 	else {
