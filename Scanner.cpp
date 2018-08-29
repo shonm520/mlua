@@ -300,7 +300,7 @@ Scanner::State Scanner::procStartState(char ch, Token& token)
 
 bool Scanner::procIntState(char ch, Token& token)
 {
-	if (isdigit(ch))  {
+	if (isdigit(ch) || ch == '.')  {
 		token.lexeme += ch;
 	}
 	else  {

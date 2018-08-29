@@ -21,7 +21,7 @@ void BaseLib::PrintType(Value* val)
 			printf("%d", ((Number*)val)->GetInteger());
 		}
 		else  {
-			printf("%f", ((Number*)val)->Get());
+			printf("%.14lg", ((Number*)val)->Get());     //这里可以四舍五入，也可以省略后面的0，完美输出，最多输出后面14位小数
 		}
 	}
 	else if (val->Type() == Value::TYPE_NIL)  {

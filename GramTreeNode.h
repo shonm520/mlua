@@ -299,6 +299,9 @@ public:
 			else  if (_type == TERM_FALSE){
 				_val = new BoolValue(false);
 			}
+			else if (_type == TERM_STRING)  {
+				_val = new String(_token.lexeme);
+			}
 			else  if (_type == TERM_NIL){
 				_val = new Nil();
 			}
