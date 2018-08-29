@@ -325,21 +325,34 @@ void VM::operateNum(Instruction* ins)
 		printf("error, operate on a nil value\n");
 	}
 
-	double num = 0;
-	if (ins->op_code == Instruction::OpCode_Plus)  {
-		num = ((Number*)num2)->Get() + ((Number*)num1)->Get();
+	Value* ret = nullptr;
+	if (num1->Type() == Value::TYPE_STRING &&
+		num2->Type() == Value::TYPE_STRING)  {
+		ret = ((String*)num2)->concat((String*)num1);
 	}
-	else if (ins->op_code == Instruction::OpCode_Minus)  {
-		num = ((Number*)num2)->Get() - ((Number*)num1)->Get();
+	else if (num1->Type() == Value::TYPE_STRING &&
+		num2->Type() == Value::TYPE_STRING)  {
+		double num = 0;
+		if (ins->op_code == Instruction::OpCode_Plus)  {
+			num = ((Number*)num2)->Get() + ((Number*)num1)->Get();
+		}
+		else if (ins->op_code == Instruction::OpCode_Minus)  {
+			num = ((Number*)num2)->Get() - ((Number*)num1)->Get();
+		}
+		else if (ins->op_code == Instruction::OpCode_Multiply)  {
+			num = ((Number*)num2)->Get() * ((Number*)num1)->Get();
+		}
+		else if (ins->op_code == Instruction::OpCode_Divide)  {
+			num = ((Number*)num2)->Get() / ((Number*)num1)->Get();
+		}
+
+		ret = new Number(num);
 	}
-	else if (ins->op_code == Instruction::OpCode_Multiply)  {
-		num = ((Number*)num2)->Get() * ((Number*)num1)->Get();
+	else  {
+		printf("error, attempt to perform arithmetic on a type that cannot be operated\n");
 	}
-	else if (ins->op_code == Instruction::OpCode_Divide)  {
-		num = ((Number*)num2)->Get() / ((Number*)num1)->Get();
-	}
+
 	
-	Value* ret = new Number(num);
 	_stack->Push(ret);
 }
 

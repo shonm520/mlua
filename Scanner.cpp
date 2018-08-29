@@ -92,6 +92,7 @@ void Scanner::initSymbols()
     m_vtStrSymbols.insert("<=");
     m_vtStrSymbols.insert("==");
     m_vtStrSymbols.insert("!=");
+	m_vtStrSymbols.insert("..");
 }
 
 string Scanner::detailType2Lexeme(TokenType_Detail detail)
@@ -435,6 +436,13 @@ void Scanner::procSymbolState(char ch, Token& token, Scanner::State& state)
 	}
 	else if (token.lexeme == "|")  {
 		if (ch == '|')  {
+			token.lexeme += ch;
+			state = STATE_DONE;
+			match = true;
+		}
+	}
+	else if (token.lexeme == ".")  {
+		if (ch == '.')  {
 			token.lexeme += ch;
 			state = STATE_DONE;
 			match = true;

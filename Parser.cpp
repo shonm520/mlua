@@ -601,9 +601,11 @@ Parser::TreeNode *Parser::parse_additive_expression()
 {
 	TreeNode *t = parse_term();
 	Scanner::Token token = peekToken(true);
-	while (token.lexeme == "+" || token.lexeme == "-") {
+	while (token.lexeme == "+" || 
+		   token.lexeme == "-" ||
+		   token.lexeme == "..") {
 		eatExpectedToken(Token(token));
-		OperateStatement::OperateType optype = (token.lexeme == "+") ? OperateStatement::Plus : OperateStatement::Minus;
+		OperateStatement::OperateType optype = (token.lexeme == "-") ? OperateStatement::Minus : OperateStatement::Plus;
 		TreeNode *p = new OperateStatement(optype);
 		p->setToken(token);
 		p->addChild(t, 0);

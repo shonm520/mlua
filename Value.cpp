@@ -15,6 +15,11 @@ bool String::IsEqual(const Value *other) const
 	return _value == static_cast<const String *>(other)->_value;
 }
 
+String* String::concat(String* other)
+{
+	return new String(_value + other->_value);
+}
+
 
 
 

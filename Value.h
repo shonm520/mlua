@@ -85,6 +85,8 @@ public:
 
 	std::size_t GetHash() const  { return std::hash<std::string>()(_value); }
 
+	String* concat(String* other);
+
 private:
 	std::string _value;
 };
