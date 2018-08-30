@@ -12,6 +12,8 @@ public:
 	VM(State* state);
 	~VM();
 
+	friend class BaseLib;
+
 private:
 	State* _state;
 	Stack* _stack;

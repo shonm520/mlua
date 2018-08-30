@@ -26,3 +26,7 @@ void State::registerFunc(std::string name, Fun fun)
 }
 
 
+void State::registerTable(std::string name, Table* table)
+{
+	_global_table->Assign(new String(name.c_str()), table);
+}

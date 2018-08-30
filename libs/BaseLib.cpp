@@ -126,3 +126,77 @@ int BaseLib::next(State* state, void*)
 	}
 	return 0;
 }
+
+
+
+
+
+int BaseLib::StringLib::len(State* state, void*)
+{
+	state->getVM()->lenOfVale(nullptr);
+	return 0;
+}
+
+int BaseLib::StringLib::upper(State* state, void*)
+{
+	String* str = (String*)state->getStack()->popValue();
+	int len = str->getLen();
+	char* bytes = new char[len + 1];
+	bytes[len] = 0;
+	for (int i = 0; i < len; i++)  {
+		char c = str->Get().at(i);
+		if (c >= 'a' && c <= 'z')  {
+			c = c - 0x20;
+		}
+		bytes[i] = c;
+	}
+	String* up = new String(std::string(bytes));
+	delete bytes;
+	state->getStack()->Push(up);
+	return 0;
+}
+
+int BaseLib::StringLib::substr(State* state, void* num)
+{
+	std::list<Value*> listVals;
+	int n = (int)num;
+	for (int i = 0; i < n; i++)  {
+		listVals.push_back(state->getStack()->popValue());
+	}
+	int start = 0;
+	int cnt = 0;
+	Value* val[3] = {0};
+	for (int i = 0; i < n; i++)  {
+		val[i] = listVals.back();
+		listVals.pop_back();
+	}
+	std::string strRaw;
+	if (val[0])  {
+		strRaw = ((String*)val[0])->Get();
+	}
+	if (val[1])  {
+		start = ((Number*)val[1])->GetInteger();
+	}
+	if (val[2])  {
+		cnt = ((Number*)val[2])->GetInteger();
+	}
+	if (cnt < 0 || cnt > strRaw.length())  {
+		cnt = strRaw.length();
+	}
+	if (start >= strRaw.length())  {
+		state->getStack()->Push(new Nil());
+		return 0;
+	}
+	std::string sub = strRaw.substr(start, cnt);
+	state->getStack()->Push(new String(sub));
+	return 0;
+}
+
+Table* BaseLib::StringLib::generateStringTable()
+{
+	Table* tab = new Table();
+	tab->Assign(new String("len"), new NativeFunc(StringLib::len));
+	tab->Assign(new String("upper"), new NativeFunc(StringLib::upper));
+	tab->Assign(new String("substr"), new NativeFunc(StringLib::substr));
+	return tab;
+}

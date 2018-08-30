@@ -22,6 +22,8 @@ public:
 
 	typedef int(*Fun)(State*, void*);
 	void registerFunc(std::string name, Fun);
+	void registerTable(std::string name, Table* table);
+
 	void setVM(VM* vm)  { _vm = vm; }
 	VM* getVM()  { return _vm; }
 

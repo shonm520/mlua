@@ -43,6 +43,8 @@ void VM::registerFunc()
 	_state->registerFunc("pairs", BaseLib::generatePairs);
 	_state->registerFunc("ipairs", BaseLib::generateIPairs);
 	_state->registerFunc("next", BaseLib::next);
+
+	_state->registerTable("string", BaseLib::StringLib::generateStringTable());
 }
 
 
