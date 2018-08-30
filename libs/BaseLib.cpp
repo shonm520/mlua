@@ -9,6 +9,9 @@
 #include "../CodeGenerate.h"
 #include "../VM.h"
 #include "BaseLib.h"
+#include <math.h>
+#include <time.h>
+#include <stdlib.h>
 
 
 void BaseLib::PrintType(Value* val)
@@ -127,6 +130,32 @@ int BaseLib::next(State* state, void*)
 	return 0;
 }
 
+int BaseLib::type(State* state, void*)
+{
+	Value* val = state->getStack()->popValue();
+	if (val->Type() == Value::TYPE_NUMBER)  {
+		printf("number\n");
+	}
+	else if (val->Type() == Value::TYPE_STRING)  {
+		printf("string\n");
+	}
+	else if (val->Type() == Value::TYPE_FUNCTION)  {
+		printf("funciton\n");
+	}
+	else if (val->Type() == Value::TYPE_CLOSURE)  {
+		printf("funciton\n");
+	}
+	else if (val->Type() == Value::TYPE_NATIVE_FUNCTION)  {
+		printf("native function\n");
+	}
+	else if (val->Type() == Value::TYPE_BOOL)  {
+		printf("bool\n");
+	}
+	else if (val->Type() == Value::TYPE_NIL)  {
+		printf("nil\n");
+	}
+	return 0;
+}
 
 
 
@@ -259,5 +288,45 @@ Table* BaseLib::StringLib::generateStringTable()
 	tab->Assign(new String("substr"), new NativeFunc(StringLib::substr));
 	tab->Assign(new String("byte"), new NativeFunc(StringLib::byte));
 	tab->Assign(new String("char"), new NativeFunc(StringLib::_char));
+	return tab;
+}
+
+
+
+
+
+
+
+int BaseLib::MathLib::_pow(State* state, void* num)
+{
+	long n = (long)num;
+	if (n != 2)  {
+		printf("error, params num error!\n");
+	}
+	Number* index = (Number*)state->getStack()->popValue();
+	Number* base = (Number*)state->getStack()->popValue();
+	double ret = pow(base->Get(), index->Get());
+	state->getStack()->Push(new Number(ret));
+	return 0;
+}
+
+int BaseLib::MathLib::_random(State* state, void* num)
+{
+	long n = (long)num;
+	while (n > 0)  {
+		state->getStack()->popValue();
+		n--;
+	}
+	srand((unsigned int)time(0));
+	int rd = rand() % 10 ;
+	state->getStack()->Push(new Number(rd));
+	return 0;
+}
+
+Table* BaseLib::MathLib::generateMathTable()
+{
+	Table* tab = new Table();
+	tab->Assign(new String("pow"), new NativeFunc(MathLib::_pow));
+	tab->Assign(new String("rand"), new NativeFunc(MathLib::_random));
 	return tab;
 }

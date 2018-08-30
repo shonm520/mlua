@@ -9,17 +9,25 @@ public:
 	static int generatePairs(State* state, void*);
 	static int generateIPairs(State* state, void*);
 	static int next(State* state, void*);
+	static int type(State* state, void*);
 
 
 
-	class StringLib{
-	public:
+	struct StringLib  {
 		static int len(State* state, void*);
 		static int upper(State* state, void*);
 		static int substr(State* state, void*);
 		static int byte(State* state, void*);
 		static int _char(State* state, void*);
 		static Table* generateStringTable();
+	};
+
+
+
+	struct MathLib  {
+		static int _pow(State*, void*);
+		static int _random(State*, void*);
+		static Table* generateMathTable();
 	};
 
 	
