@@ -2,6 +2,7 @@
 #include "Value.h"
 #include "Function.h"
 #include "Stack.h"
+#include "libs/BaseLib.h"
 
 
 
@@ -29,4 +30,16 @@ void State::registerFunc(std::string name, Fun fun)
 void State::registerTable(std::string name, Table* table)
 {
 	_global_table->Assign(new String(name.c_str()), table);
+}
+
+void State::openLibs()
+{
+	registerFunc("print", BaseLib::Print);
+	registerFunc("pairs", BaseLib::generatePairs);
+	registerFunc("ipairs", BaseLib::generateIPairs);
+	registerFunc("next", BaseLib::next);
+	registerFunc("type", BaseLib::type);
+
+	registerTable("string", BaseLib::StringLib::generateStringTable());
+	registerTable("math", BaseLib::MathLib::generateMathTable());
 }

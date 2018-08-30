@@ -157,14 +157,26 @@ int BaseLib::type(State* state, void*)
 	return 0;
 }
 
-
-
-
-int BaseLib::StringLib::len(State* state, void*)
+int BaseLib::len(State* state, void*)
 {
-	state->getVM()->lenOfVale(nullptr);
+	Value* val = state->getStack()->popValue();
+	Number* len = new Number(0);
+	if (val->Type() == Value::TYPE_STRING) {
+		int l = ((String*)val)->getLen();
+		len->SetNumber(l);
+	}
+	else if (val->Type() == Value::TYPE_TABLE)  {
+		int l = ((Table*)val)->getLen();
+		len->SetNumber(l);
+	}
+	state->getStack()->Push(len);
 	return 0;
 }
+
+
+
+
+
 
 int BaseLib::StringLib::upper(State* state, void*)
 {
@@ -283,7 +295,7 @@ int BaseLib::StringLib::_char(State* state, void* num)
 Table* BaseLib::StringLib::generateStringTable()
 {
 	Table* tab = new Table();
-	tab->Assign(new String("len"), new NativeFunc(StringLib::len));
+	tab->Assign(new String("len"), new NativeFunc(BaseLib::len));
 	tab->Assign(new String("upper"), new NativeFunc(StringLib::upper));
 	tab->Assign(new String("substr"), new NativeFunc(StringLib::substr));
 	tab->Assign(new String("byte"), new NativeFunc(StringLib::byte));

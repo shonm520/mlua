@@ -12,7 +12,7 @@ public:
 	VM(State* state);
 	~VM();
 
-	friend class BaseLib;
+	//friend class BaseLib;
 
 private:
 	State* _state;
@@ -46,7 +46,6 @@ private:
 	void funcionRet(Instruction* ins);
 	void operateNum(Instruction* ins);
 	void operateLogic(Instruction* ins);
-	void registerFunc();
 	Closure* getCurrentClosure();
 
 	void ifCompare(Instruction* ins);

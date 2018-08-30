@@ -17,7 +17,6 @@ VM::VM(State* state)
 	_curInsVal(nullptr)
 {
 	_stack = _state->getStack();
-	registerFunc();
 	_state->setVM(this);
 }
 
@@ -34,19 +33,6 @@ void VM::execute()
 void VM::execute_frame()
 {
 
-}
-
-
-void VM::registerFunc()
-{
-	_state->registerFunc("print", BaseLib::Print);
-	_state->registerFunc("pairs", BaseLib::generatePairs);
-	_state->registerFunc("ipairs", BaseLib::generateIPairs);
-	_state->registerFunc("next", BaseLib::next);
-	_state->registerFunc("type", BaseLib::type);
-
-	_state->registerTable("string", BaseLib::StringLib::generateStringTable());
-	_state->registerTable("math", BaseLib::MathLib::generateMathTable());
 }
 
 
@@ -609,15 +595,5 @@ void VM::negNumber(Instruction* ins)
 
 void VM::lenOfVale(Instruction* ins)
 {
-	Value* val = _stack->popValue();
-	Number* len = new Number(0);
-	if (val->Type() == Value::TYPE_STRING) {
-		int l = ((String*)val)->getLen();
-		len->SetNumber(l);
-	}
-	else if (val->Type() == Value::TYPE_TABLE)  {
-		int l = ((Table*)val)->getLen();
-		len->SetNumber(l);
-	}
-	_stack->Push(len);
+	BaseLib::len(_state, nullptr);	
 }

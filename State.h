@@ -27,6 +27,8 @@ public:
 	void setVM(VM* vm)  { _vm = vm; }
 	VM* getVM()  { return _vm; }
 
+	void openLibs();
+
 private:
 	Stack* _stack;
 	Table* _global_table;

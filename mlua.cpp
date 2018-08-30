@@ -6,7 +6,6 @@
 #include <vector>
 #include <string>
 
-using namespace std;
 
 int main(int argc, char *argv[])
 {
@@ -30,6 +29,7 @@ int main(int argc, char *argv[])
     parser.parse_program();
     if (!hasError())  {
 		State state;
+		state.openLibs();
 		CodeGenerate(parser.getSyntaxTree(), &state);
     }
 

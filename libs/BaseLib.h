@@ -10,11 +10,10 @@ public:
 	static int generateIPairs(State* state, void*);
 	static int next(State* state, void*);
 	static int type(State* state, void*);
-
+	static int len(State* state, void*);
 
 
 	struct StringLib  {
-		static int len(State* state, void*);
 		static int upper(State* state, void*);
 		static int substr(State* state, void*);
 		static int byte(State* state, void*);
