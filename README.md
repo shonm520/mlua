@@ -1,6 +1,10 @@
 # mlua
 An interpreter of lua-like language written in C++ 
 
+技术细节详细讲解博客：
+
+https://blog.csdn.net/column/details/25937.html
+
 ### 安装：
 git clone https://github.com/shonm520/mlua.git
 
@@ -66,6 +70,8 @@ end
 1   12  10
 2   78  10
 ```
+
+
 
 ### 下一步：
 
