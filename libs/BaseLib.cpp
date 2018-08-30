@@ -151,6 +151,9 @@ int BaseLib::type(State* state, void*)
 	else if (val->Type() == Value::TYPE_BOOL)  {
 		printf("bool\n");
 	}
+	else if (val->Type() == Value::TYPE_TABLE)  {
+		printf("table\n");
+	}
 	else if (val->Type() == Value::TYPE_NIL)  {
 		printf("nil\n");
 	}

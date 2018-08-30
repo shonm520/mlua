@@ -694,6 +694,10 @@ Parser::TreeNode *Parser::parse_not_factor()
 	else if (token.lexeme == "nil") {
 		t = new Terminator(token, Terminator::TERM_NIL);
 	}
+	else if (token.lexeme == "{")  {
+		ungetToken();
+		t = parse_table_constructor();
+	}
 	else if (token.kind == Scanner::ID) {
 		t = new TreeNode(VAR_K);
 		ungetToken();
