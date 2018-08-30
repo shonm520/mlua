@@ -162,6 +162,7 @@ public:
 	Table* clone();
 	int getLen();
 	Value* getNextValue(int i, Value** key);
+	void setMeta(Table* t)  { _meta = t; }
 
 private:
 	typedef std::vector<TableValue *> ArrayType;
@@ -174,5 +175,7 @@ private:
 
 	ArrayType* _array;
 	HashTableType* _hash_table;
+	Table* _meta;
+	Table* __index;
 };
 

@@ -39,6 +39,7 @@ void State::openLibs()
 	registerFunc("ipairs", BaseLib::generateIPairs);
 	registerFunc("next", BaseLib::next);
 	registerFunc("type", BaseLib::type);
+	registerFunc("setmetatable", BaseLib::setmeta);
 
 	registerTable("string", BaseLib::StringLib::generateStringTable());
 	registerTable("math", BaseLib::MathLib::generateMathTable());

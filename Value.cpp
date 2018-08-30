@@ -103,12 +103,24 @@ TableValue * Table::GetTableValue(const Value *key)
 		return it->second;
 	}
 
+	if (_meta)  {
+		Value* val = _meta->GetValue(new String("__index"));
+		if (val && val->Type() != Value::TYPE_TABLE)  {
+			printf("__index value is not a table value\n");
+			return 0;
+		}
+		if (val)  {
+			return ((Table*)val)->GetTableValue(key);
+		}
+	}
+
 	return 0;
 }
 
 
 
 Table::Table() : 
+	_meta(nullptr),
 	_hash_table(nullptr), _array(nullptr)
 {
 	

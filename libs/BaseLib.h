@@ -11,6 +11,7 @@ public:
 	static int next(State* state, void*);
 	static int type(State* state, void*);
 	static int len(State* state, void*);
+	static int setmeta(State* state, void*);
 
 
 	struct StringLib  {

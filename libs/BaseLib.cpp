@@ -36,6 +36,9 @@ void BaseLib::PrintType(Value* val)
 	else if (val->Type() == Value::TYPE_TABLE)  {
 		printf("table: 0x%08x", val);
 	}
+	else if (val->Type() == Value::TYPE_TABLEVAL){
+		PrintType(((TableValue*)val)->GetValue());
+	}
 }
 
 
@@ -176,7 +179,13 @@ int BaseLib::len(State* state, void*)
 	return 0;
 }
 
-
+int BaseLib::setmeta(State* state, void*)
+{
+	Table* tab2 = (Table*)state->getStack()->popValue();
+	Table* tab1 = (Table*)state->getStack()->popValue();
+	tab1->setMeta(tab2);
+	return 0;
+}
 
 
 
