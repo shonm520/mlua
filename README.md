@@ -67,6 +67,9 @@ end
 2   78  10
 ```
 
+技术细节详细讲解博客：
+https://blog.csdn.net/column/details/25937.html
+
 ### 下一步：
 
 + 注释还是C++格式的，单行//，多行 /* */，要改成lua的--
