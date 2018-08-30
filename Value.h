@@ -15,6 +15,7 @@ struct Value
 		TYPE_NUMBER,
 		TYPE_STRING,
 		TYPE_TABLE,
+		TYPE_TABLEVAL,
 		TYPE_FUNCTION,
 		TYPE_CLOSURE,
 		TYPE_NATIVE_FUNCTION,
@@ -123,9 +124,10 @@ private:
 class TableValue : public Value
 {
 public:
+	friend class Table;
 	explicit TableValue(Value *value) : _value(value){}
 
-	virtual int Type() const { return _value->Type(); }
+	virtual int Type() const { return TYPE_TABLEVAL; }
 	virtual bool IsEqual(const Value *other) const { return _value->IsEqual(other); };
 	virtual std::string Name() const { return _value->Name(); }
 
@@ -158,10 +160,8 @@ public:
 	void Assign(const Value *key, TableValue *table_value);
 
 	Table* clone();
-	Value* getNextValue(int i, Value** key);
-
 	int getLen();
-
+	Value* getNextValue(int i, Value** key);
 
 private:
 	typedef std::vector<TableValue *> ArrayType;

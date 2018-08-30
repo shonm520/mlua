@@ -273,10 +273,16 @@ void VM::assignSimple(int type)
 	Table* tab = getCurrentClosure()->getTopTable();
 	Value* key = _stack->popValue();
 	Value* val = _stack->popValue();
-	if (type == 1 && getCurrentClosure()->findUpTables(key, nullptr, &tab) == -1)  {      //赋值时没有找到就放在全局表中
-		tab = _state->getGlobalTable();
+	if (key->Type() == Value::TYPE_STRING)  {
+		if (type == 1 && getCurrentClosure()->findUpTables(key, nullptr, &tab) == -1)  {      //赋值时没有找到就放在全局表中
+			tab = _state->getGlobalTable();
+		}
+		tab->Assign(key, val);
 	}
-	tab->Assign(key, val);
+	else if (key->Type() == Value::TYPE_TABLEVAL) {
+		((TableValue*)key)->SetValue(val);
+	}
+	
 }
 
 
@@ -568,6 +574,10 @@ void VM::tableAccess(Instruction* ins)
 				printf("%s is not a table\n", ((String*)tabName)->Get().c_str());
 			}
 			val = ((Table*)tab)->GetValue(member);
+			if (!val)  {
+				((Table*)tab)->Assign(member, new Nil());
+				val = ((Table*)tab)->GetTableValue(member);   //用于table赋值 t.a = 1
+			}
 		}
 		else  {
 			if (tabName->Type() == Value::TYPE_NUMBER)  {

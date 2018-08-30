@@ -146,10 +146,13 @@ void Table::ArrayAssign(std::size_t array_index, TableValue *table_value)
 void Table::Assign(const Value *key, Value *value)
 {
 	TableValue *tv = GetTableValue(key);
-	if (tv)
+	if (tv)  {
 		tv->SetValue(value);
-	else
-		Assign(key,  new TableValue(value));
+	}
+	else  {
+		tv = new TableValue(value);
+	}
+	Assign(key,  tv);
 }
 
 void Table::Assign(const Value *key, TableValue *table_value)
