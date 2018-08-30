@@ -192,11 +192,72 @@ int BaseLib::StringLib::substr(State* state, void* num)
 	return 0;
 }
 
+int BaseLib::StringLib::byte(State* state, void* num)
+{
+	std::list<Value*> listVals;
+	long n = (long)num;
+	for (int i = 0; i < n; i++)  {
+		listVals.push_back(state->getStack()->popValue());
+	}
+	int start = 0;
+	int end = 0;
+	Value* val[3] = { 0 };
+	for (int i = 0; i < n; i++)  {
+		val[i] = listVals.back();
+		listVals.pop_back();
+	}
+	std::string strRaw;
+	if (val[0])  {
+		strRaw = ((String*)val[0])->Get();
+	}
+	if (val[1])  {
+		start = ((Number*)val[1])->GetInteger() - 1;
+	}
+	if (val[2])  {
+		end = ((Number*)val[2])->GetInteger() - 1;
+	}
+	if (end < 0 || end >= strRaw.length())  {
+		end = strRaw.length() - 1;
+	}
+	if (start >= strRaw.length())  {
+		state->getStack()->Push(new Nil());
+		return 0;
+	}
+	for (int i = start; i <= end; i++)  {
+		char c = strRaw.at(i);
+		state->getStack()->Push(new Number(c));
+	}
+	
+	return 0;
+}
+
+int BaseLib::StringLib::_char(State* state, void* num)
+{
+	std::list<Value*> listVals;
+	long n = (long)num;
+	for (int i = 0; i < n; i++)  {
+		listVals.push_back(state->getStack()->popValue());
+	}
+	char* bytes = new char[n + 1];
+	bytes[n] = 0;
+	for (int i = 0; i < n; i++)  {
+		Number* val = (Number*)listVals.back();
+		listVals.pop_back();
+		bytes[i] = val->GetInteger();
+	}
+	std::string strRaw(bytes);
+	delete bytes;
+	state->getStack()->Push(new String(strRaw));
+	return 0;
+}
+
 Table* BaseLib::StringLib::generateStringTable()
 {
 	Table* tab = new Table();
 	tab->Assign(new String("len"), new NativeFunc(StringLib::len));
 	tab->Assign(new String("upper"), new NativeFunc(StringLib::upper));
 	tab->Assign(new String("substr"), new NativeFunc(StringLib::substr));
+	tab->Assign(new String("byte"), new NativeFunc(StringLib::byte));
+	tab->Assign(new String("char"), new NativeFunc(StringLib::_char));
 	return tab;
 }

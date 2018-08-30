@@ -17,6 +17,8 @@ public:
 		static int len(State* state, void*);
 		static int upper(State* state, void*);
 		static int substr(State* state, void*);
+		static int byte(State* state, void*);
+		static int _char(State* state, void*);
 		static Table* generateStringTable();
 	};
 
