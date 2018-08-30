@@ -159,7 +159,7 @@ int BaseLib::StringLib::upper(State* state, void*)
 int BaseLib::StringLib::substr(State* state, void* num)
 {
 	std::list<Value*> listVals;
-	int n = (int)num;
+	long n = (long)num;
 	for (int i = 0; i < n; i++)  {
 		listVals.push_back(state->getStack()->popValue());
 	}

@@ -335,8 +335,8 @@ void VM::operateNum(Instruction* ins)
 		num2->Type() == Value::TYPE_STRING)  {
 		ret = ((String*)num2)->concat((String*)num1);
 	}
-	else if (num1->Type() == Value::TYPE_STRING &&
-		num2->Type() == Value::TYPE_STRING)  {
+	else if (num1->Type() == Value::TYPE_NUMBER &&
+		num2->Type() == Value::TYPE_NUMBER)  {
 		double num = 0;
 		if (ins->op_code == Instruction::OpCode_Plus)  {
 			num = ((Number*)num2)->Get() + ((Number*)num1)->Get();
