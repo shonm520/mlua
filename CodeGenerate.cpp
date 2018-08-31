@@ -26,7 +26,9 @@ void CodeGenerate(SyntaxTreeNodeBase* root, State* state)
 	root->clear(true);
 
 	VM vm(state);
-	vm.runCode(boot.fetchInstructionVal());
+	InstructionValue* insSet = boot.fetchInstructionVal();
+	vm.runCode(insSet);
+	insSet->clearInsSet();
 }
 
 
@@ -58,9 +60,6 @@ void CodeGenerateVisitor::visit(IdentifierNode* idt, void* data)
 
 void CodeGenerateVisitor::visit(SyntaxTreeNodeBase* node, void* data)
 {
-	if (node->getToken().kind == Scanner::INT)  {
-
-	}
 }
 
 void CodeGenerateVisitor::visit(ChunkNode* chunk, void* data)

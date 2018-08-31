@@ -350,8 +350,6 @@ void VM::operateNum(Instruction* ins)
 	else  {
 		printf("error, attempt to perform arithmetic on a type that cannot be operated\n");
 	}
-
-	
 	_stack->Push(ret);
 }
 
