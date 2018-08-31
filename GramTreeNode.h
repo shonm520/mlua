@@ -152,6 +152,8 @@ public:
 	virtual SyntaxTreeNodeBase* getChildByTag(string name) { return nullptr; }
 
 	virtual SyntaxTreeNodeBase* clone();
+
+	virtual void clear(bool next);
 };
 
 

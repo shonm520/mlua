@@ -38,6 +38,29 @@ SyntaxTreeNodeBase* SyntaxTreeNodeBase::clone()
 	return  node;
 }
 
+
+void SyntaxTreeNodeBase::clear(bool next)
+{
+	for (int i = 0; i < Child_Num_Const; i++)  {
+		if (_child[i])  {
+			_child[i]->clear(true);
+		}
+	}
+	if (_pNext && next)  {
+		SyntaxTreeNodeBase* p = _pNext;
+		std::list<SyntaxTreeNodeBase*> listNode;
+		while (p)  {
+			listNode.push_back(p);
+			p = p->getNextNode();
+		}
+		for (auto it = listNode.begin(); it != listNode.end(); ++it)  {
+			(*it)->clear(false);
+		}
+	}
+	delete this;
+}
+
+
 SyntaxTreeNodeBase* AssignStatement::getChildByTag(string name)
 {
 	if (name == "var_name")  {

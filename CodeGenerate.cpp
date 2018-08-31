@@ -23,6 +23,7 @@ void CodeGenerate(SyntaxTreeNodeBase* root, State* state)
 
 	CodeWrite boot;
 	root->accept(&codeGen, &boot);
+	root->clear(true);
 
 	VM vm(state);
 	vm.runCode(boot.fetchInstructionVal());
