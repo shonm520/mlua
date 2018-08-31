@@ -17,16 +17,14 @@ public:
 	State();
 	~State();
 
+	VM* getVM()  { return _vm; }
+	void setVM(VM* vm)  { _vm = vm; }
 	Stack* getStack()  { return _stack; }
 	Table* getGlobalTable()  { return _global_table; }
 
 	typedef int(*Fun)(State*, void*);
 	void registerFunc(std::string name, Fun);
 	void registerTable(std::string name, Table* table);
-
-	void setVM(VM* vm)  { _vm = vm; }
-	VM* getVM()  { return _vm; }
-
 	void openLibs();
 
 private:

@@ -30,7 +30,6 @@ class SyntaxTreeNodeBase
 {
 public:
 	static const int Child_Num_Const = 5;
-	static int s_nCurNodeIndex;
 	enum NodeKind {
 		None, 
 		SUBROUTINE_DEC_K,
@@ -71,41 +70,8 @@ public:
 		FOR_K
 	};
 
-	static string Kind2Des(int nK)  {
-		static map<int, string> mapStrDes;
-		if (mapStrDes.size() == 0) {
-			mapStrDes.insert(make_pair(SUBROUTINE_DEC_K, "函数定义"));
-			mapStrDes.insert(make_pair(BASIC_TYPE_K, "基本类型"));
-			mapStrDes.insert(make_pair(PARAM_K, "参数类型"));
-			mapStrDes.insert(make_pair(VAR_DEC_K, "变量声明"));
-			mapStrDes.insert(make_pair(ARRAY_K, "数组类型"));
-			mapStrDes.insert(make_pair(VAR_K, "变量"));
-			mapStrDes.insert(make_pair(SUBROUTINE_BODY_K, "函数体"));
-			mapStrDes.insert(make_pair(RETURN_STATEMENT_K, "返回语句"));
-			mapStrDes.insert(make_pair(CALL_STATEMENT_K, "调用语句"));
-			mapStrDes.insert(make_pair(ASSIGN_K, "赋值语句"));
-			mapStrDes.insert(make_pair(IF_STATEMENT_K, "if语句"));
-			mapStrDes.insert(make_pair(WHILE_STATEMENT_K, "while语句"));
-			mapStrDes.insert(make_pair(COMPARE_K, "比较体"));
-			mapStrDes.insert(make_pair(OPERATION_K, "操作符"));
-			mapStrDes.insert(make_pair(INT_CONST_K, "常整数"));
-		}
-		return mapStrDes[nK];
-	}
-
 public:
-	SyntaxTreeNodeBase(int nK = None)  {
-		_pNext = nullptr;
-		_nodeKind = (NodeKind)nK;
-		_strNodeDes = Kind2Des(nK);
-		_strClassName = "";
-		_childIndex = -1;
-		_siblings = 0;
-		_pParent = nullptr;
-		memset(&_child, 0, sizeof(SyntaxTreeNodeBase*)* Child_Num_Const);
-
-		_nodeIndex = ++s_nCurNodeIndex;
-	}
+	SyntaxTreeNodeBase(int nK = None);
 	SyntaxTreeNodeBase(Scanner::Token t)  {
 		_token = t;
 	}
@@ -116,12 +82,9 @@ protected:
 	SyntaxTreeNodeBase* _pParent;
 	SyntaxTreeNodeBase* _pNext;
 	NodeKind _nodeKind;
-	string   _strNodeDes;
-	string   _strClassName;
 	short    _childIndex;     //子类的索引
 	short    _siblings;       //同等节点的个数
-	int      _nodeIndex;      //当前节点的总索引,用于判断变量是否在声明之前使用
-	  
+
 	Scanner::Token _token;
 
 public:
@@ -149,9 +112,7 @@ public:
 	short getChildIndex()  {
 		return _childIndex;
 	}
-	int getNodeIndex()  {
-		return _nodeIndex;
-	}
+
 	void setNextNode(SyntaxTreeNodeBase* node)  {
 		if (node)  {
 			node->_childIndex = _childIndex;   //这么理解,父亲有多个老婆,每个老婆有0到多个儿子,生母是同一个的孩子编号一样
@@ -190,17 +151,7 @@ public:
 	virtual string getSignName() { return ""; }
 	virtual SyntaxTreeNodeBase* getChildByTag(string name) { return nullptr; }
 
-	virtual SyntaxTreeNodeBase* clone() {
-		auto node = new SyntaxTreeNodeBase;
-		node->_nodeKind = _nodeKind;
-		node->_token = _token;
-		node->_strClassName = _strClassName;
-		node->_pParent = _pParent;
-		node->_strNodeDes = _strNodeDes;
-		node->_childIndex = _childIndex;
-		node->_siblings = _siblings;
-		return  node;
-	}
+	virtual SyntaxTreeNodeBase* clone();
 };
 
 
@@ -258,12 +209,8 @@ public:
 
 	void accept(Visitor* visitor, void* data);
 
-	Value* get_val()  {
-		if (!_val)  {
-			_val = new String(_token.lexeme.c_str());
-		}
-		return _val;
-	}
+	Value* getVal();
+private:
 	Value* _val;
 
 };
@@ -287,31 +234,11 @@ public:
 
 	void accept(Visitor* visitor, void* data);
 
-	Value* get_val()  {
-		if (!_val)  {
-			if (_type == TERM_NUMBER)  {
-				double num = strtod(_token.lexeme.c_str(), 0);
-				_val = new Number(num);
-			}
-			else  if (_type == TERM_TRUE){
-				_val = new BoolValue(true);
-			}
-			else  if (_type == TERM_FALSE){
-				_val = new BoolValue(false);
-			}
-			else if (_type == TERM_STRING)  {
-				_val = new String(_token.lexeme);
-			}
-			else  if (_type == TERM_NIL){
-				_val = new Nil();
-			}
-		}
-		return _val;
-	}
-	Value* _val;
+	Value* getVal();
 
 private:
 	TermType _type;
+	Value* _val;
 };
 
 
@@ -337,8 +264,8 @@ public:
 		VarDec_Name
 	};
 	virtual ~VarDecNode(){}
-	SyntaxTreeNodeBase* getVarDecType();    //变量的声明
-	SyntaxTreeNodeBase* getVarDecName();    //变量的名字
+	SyntaxTreeNodeBase* getVarDecType() { return _child[VarDecNode::VarDec_Type]; }    //变量的声明
+	SyntaxTreeNodeBase* getVarDecName() { return _child[VarDecNode::VarDec_Name]; }    //变量的名字
 
 };
 
@@ -381,8 +308,8 @@ public:
 	};
 
 	virtual SyntaxTreeNodeBase* getChildByTag(string name) override;
-	SyntaxTreeNodeBase* getAssginLeft();
-	SyntaxTreeNodeBase* getAssginRight();
+	SyntaxTreeNodeBase* getAssginLeft() { return _child[AssignLetf]; }
+	SyntaxTreeNodeBase* getAssginRight() { return _child[AssignRight]; }
 
 	void accept(Visitor* visitor, void* data);
 };

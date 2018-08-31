@@ -144,7 +144,7 @@ Parser::TreeNode *Parser::parse_block()
 			eatExpectedToken(Token(Scanner::Token_End));
 			break;
 		}
-		else if (node->getNodeKind() == SyntaxTreeNodeBase::RETURN_STATEMENT_K)  {
+		else if (node->getNodeKind() == TreeNode::RETURN_STATEMENT_K)  {
 			has_return = true;
 		}
 		else {
@@ -168,7 +168,7 @@ Parser::TreeNode *Parser::parse_var_name_list()
 		Scanner::Token tableName_or_varName = getToken();
 		token = peekToken(true);
 		if (token.compare("[") || token.compare("."))  {
-			SyntaxTreeNodeBase* pNode = parse_access_table_Field(new IdentifierNode(tableName_or_varName));
+			TreeNode* pNode = parse_access_table_Field(new IdentifierNode(tableName_or_varName));
 			nodeList.Push(pNode);
 		}
 		else  {
@@ -182,7 +182,7 @@ Parser::TreeNode *Parser::parse_var_name_list()
 
 Parser::TreeNode * Parser::parse_var_name(bool bList)      //½âÎö±äÁ¿Ãû,ÓÐ´ø±íÃû t.a, t[a]µÈ ÊÇ·ñ½âÎöºóÃæµÄ±äÁ¿,½âÎöº¯ÊýµÄÊµ²ÎÊ±¾Í²»ÐèÒª,ÒòÎªº¯Êý²ÎÊýÓÐ¿ÉÄÜÊÇstring,ËûÊÇ²»ÄÜ×÷±äÁ¿µÄ
 {
-	SyntaxTreeNodeBase* pNode = nullptr;
+	TreeNode* pNode = nullptr;
 	Scanner::Token tableName_or_varName = getToken();      //Èç¹û²»ÊÇµ¥¸ö±äÁ¿¾ÍÊÇtableÃûÁË
 	Scanner::Token token = peekToken(true);
 	if (token.compare("[") || token.compare("."))  {
@@ -221,10 +221,10 @@ Parser::TreeNode * Parser::parse_var_name(bool bList)      //½âÎö±äÁ¿Ãû,ÓÐ´ø±íÃû
 	return pNode;
 }
 
-Parser::TreeNode *Parser::parse_access_table_Field(SyntaxTreeNodeBase* table_prefix)
+Parser::TreeNode *Parser::parse_access_table_Field(TreeNode* table_prefix)
 {
 	Token token = peekToken(true);
-	SyntaxTreeNodeBase* tab_sum = nullptr;
+	TreeNode* tab_sum = nullptr;
 	while (token.compare(".") || token.compare("["))  {
 		eatExpectedToken(token);
 		if (token.compare("."))  {
@@ -306,7 +306,7 @@ Parser::TreeNode *Parser::parse_statements()    //½âÎöÒ»¸ö¿éÀïµÄËùÓÐÓï¾ä,°üÀ¨ÉùÃ
 			syntaxError(_strCurFileName, "a Identifier", token);
 			return nullptr;
 		}
-		SyntaxTreeNodeBase* node = parse_var_name(true);
+		TreeNode* node = parse_var_name(true);
 		Scanner::Token token = peekToken(true);
 		if (token.compare("("))  {  //f()
 			return parse_call_statement(node);
@@ -322,7 +322,7 @@ Parser::TreeNode *Parser::parse_statements()    //½âÎöÒ»¸ö¿éÀïµÄËùÓÐÓï¾ä,°üÀ¨ÉùÃ
 
 Parser::TreeNode *Parser::parse_local_nameList()
 {
-	SyntaxTreeNodeBase* left_vals = parse_var_name(true);
+	TreeNode* left_vals = parse_var_name(true);
 	Scanner::Token token = peekToken(true);
 
 	if (token.compare("="))  {
@@ -360,20 +360,20 @@ Parser::TreeNode *Parser::parse_local_statement()
 Parser::TreeNode *Parser::parse_function_statement(bool anony, bool global)
 {
 	eatExpectedToken(Token(Scanner::Token_Function));
-	SyntaxTreeNodeBase* fct_name = nullptr;
+	TreeNode* fct_name = nullptr;
 	if (! anony)  {     //²»ÊÇÄäÃûº¯Êý
 		fct_name = parse_var_name(true);
 	}
 	
 	eatExpectedToken(Token(Scanner::Token_LeftRoundBracket));
 	Token token = peekToken(true);
-	SyntaxTreeNodeBase* param_list = nullptr;
+	TreeNode* param_list = nullptr;
 	while (! token.compare(Scanner::Token_RightRoundBracket))  {
 		param_list = parse_var_name(true);
 		token = peekToken(true);
 	}
 	eatExpectedToken(Token(Scanner::Token_RightRoundBracket));
-	SyntaxTreeNodeBase* fct_body = parse_block();
+	TreeNode* fct_body = parse_block();
 
 	FunctionStatement* fct_stm = new FunctionStatement();
 	fct_stm->addChild(fct_name, FunctionStatement::EFuncName);
@@ -383,7 +383,7 @@ Parser::TreeNode *Parser::parse_function_statement(bool anony, bool global)
 	return fct_stm;
 }
 
-Parser::TreeNode *Parser::parse_assign_statement_lua(SyntaxTreeNodeBase* left_vals)    //½âÎöÐÎÈça, b = 1, 2
+Parser::TreeNode *Parser::parse_assign_statement_lua(TreeNode* left_vals)    //½âÎöÐÎÈça, b = 1, 2
 {
 	TreeNode *t = new AssignStatement();
 	t->addChild(left_vals, AssignStatement::AssignLetf);
@@ -447,7 +447,7 @@ Parser::TreeNode *Parser::parse_return_statement()
 	return rt_smt;
 }
 
-Parser::TreeNode *Parser::parse_call_statement(SyntaxTreeNodeBase* caller_node)
+Parser::TreeNode *Parser::parse_call_statement(TreeNode* caller_node)
 {
 	NormalCallFunciton *call_statement = new NormalCallFunciton();
 	call_statement->addChild(caller_node, 0);
@@ -720,7 +720,7 @@ Parser::TreeNode *Parser::parse_not_factor()
 	return t;
 }
 
-Parser::TreeNode *Parser::parse_call_expression(SyntaxTreeNodeBase* caller)
+Parser::TreeNode *Parser::parse_call_expression(TreeNode* caller)
 {
 	return parse_call_statement(caller);
 }

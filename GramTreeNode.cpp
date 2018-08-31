@@ -2,7 +2,15 @@
 #include "GramTreeNode.h"
 #include "Visitor.h"
 
-int SyntaxTreeNodeBase::s_nCurNodeIndex = 0;
+
+
+SyntaxTreeNodeBase::SyntaxTreeNodeBase(int nK) 
+	:_pNext(nullptr), _pParent(nullptr),
+	_childIndex(-1), _siblings(0)
+{
+	_nodeKind = (NodeKind)nK;
+	memset(&_child, 0, sizeof(SyntaxTreeNodeBase*)* Child_Num_Const);
+}
 
 void SyntaxTreeNodeBase:: addChild(SyntaxTreeNodeBase* pChild, int ind )  {
 	if (pChild)   {
@@ -19,6 +27,17 @@ void SyntaxTreeNodeBase:: addChild(SyntaxTreeNodeBase* pChild, int ind )  {
 	}
 }
 
+SyntaxTreeNodeBase* SyntaxTreeNodeBase::clone() 
+{
+	auto node = new SyntaxTreeNodeBase;
+	node->_nodeKind = _nodeKind;
+	node->_token = _token;
+	node->_pParent = _pParent;
+	node->_childIndex = _childIndex;
+	node->_siblings = _siblings;
+	return  node;
+}
+
 SyntaxTreeNodeBase* AssignStatement::getChildByTag(string name)
 {
 	if (name == "var_name")  {
@@ -30,36 +49,42 @@ SyntaxTreeNodeBase* AssignStatement::getChildByTag(string name)
 	return nullptr;
 }
 
-SyntaxTreeNodeBase* AssignStatement::getAssginLeft()
+
+
+
+
+Value* Terminator::getVal()  
 {
-	return _child[AssignLetf];
+	if (!_val)  {
+		if (_type == TERM_NUMBER)  {
+			double num = strtod(_token.lexeme.c_str(), 0);
+			_val = new Number(num);
+		}
+		else  if (_type == TERM_TRUE){
+			_val = new BoolValue(true);
+		}
+		else  if (_type == TERM_FALSE){
+			_val = new BoolValue(false);
+		}
+		else if (_type == TERM_STRING)  {
+			_val = new String(_token.lexeme);
+		}
+		else  if (_type == TERM_NIL){
+			_val = new Nil();
+		}
+	}
+	return _val;
 }
 
-SyntaxTreeNodeBase* AssignStatement::getAssginRight()
-{
-	return _child[AssignRight];
+
+
+
+Value* IdentifierNode::getVal()  {
+	if (!_val)  {
+		_val = new String(_token.lexeme.c_str());
+	}
+	return _val;
 }
-
-
-
-
-SyntaxTreeNodeBase* VarDecNode::getVarDecType()
-{
-	return _child[VarDecNode::VarDec_Type];
-}
-
-SyntaxTreeNodeBase* VarDecNode::getVarDecName()
-{
-	return _child[VarDecNode::VarDec_Name];
-}
-
-
-
-
-
-
-
-
 
 
 

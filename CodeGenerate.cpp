@@ -35,7 +35,7 @@ void CodeGenerateVisitor::visit(Terminator* term, void* data)
 	Instruction *ins = writer->newInstruction();
 	ins->op_code = Instruction::OpCode_Push;
 	ins->type = InstructionParam::InstructionParamType_Value;
-	ins->param.value = term->get_val();
+	ins->param.value = term->getVal();
 }
 
 void CodeGenerateVisitor::visit(IdentifierNode* idt, void* data)
@@ -46,12 +46,12 @@ void CodeGenerateVisitor::visit(IdentifierNode* idt, void* data)
 	if (type == ExpVarData::VAR_SET)  {                                   //局部变量赋值
 		ins->op_code = Instruction::OpCode_SetLocalVar;
 		ins->type = InstructionParam::InstructionParamType_Name;
-		ins->param.name = (String*)idt->get_val();
+		ins->param.name = (String*)idt->getVal();
 	}
 	else if (type == ExpVarData::VAR_GET)  {
 		ins->op_code = Instruction::OpCode_GetLocalVar;
 		ins->type = InstructionParam::InstructionParamType_Name;
-		ins->param.name = (String*)idt->get_val();
+		ins->param.name = (String*)idt->getVal();
 	}
 }
 
