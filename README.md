@@ -81,11 +81,12 @@ t.func = function(str)
 t.func('hello')
 ```
 
-### 部分类库的例子
+### 部分内置函数和类库的例子
 ```
 print(string.len('hello world'))
 print(string.upper('world'))
 print(math.pow(2, 6))
+print(type({}))
 ```
 
 ### 元表的例子：
