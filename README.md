@@ -14,7 +14,7 @@ Linux :  g++  \*.cpp libs/\*.cpp -o mlua -std=c++11
 
 目前已实现了lua的大部分语句，包括if语句，函数，闭包，table，for循环等。 虚拟机目前是基于栈的。
 
-### 闭包的例子：
+### 函数与闭包的例子：
 
 ```
 local f = function(a)
@@ -36,7 +36,7 @@ print(n1, n2)
 35      36
 ```
 
-### if语句，递归的例子：
+### if语句，函数递归调用的例子：
 ```
 function fib(n)
     if n == 0 then return 1
@@ -71,6 +71,23 @@ end
 2   78  10
 ```
 
+### table的例子
+```
+t = {name = 'shonm', 28, sex = 'male', game = {name = 'Glory of the king'}}
+
+t.func = function(str) 
+			print(str, t.name, 'age is ', t[1], 'sex is ', t.sex, 'he plays', t.game.name) 
+		end
+t.func('hello')
+```
+
+### 部分类库的例子
+```
+print(string.len('hello world'))
+print(string.upper('world'))
+print(math.pow(2, 6
+```
+
 ### 元表的例子：
 ```
 fa = {house = 3}
@@ -80,6 +97,7 @@ setmetatable(son, fa)
 print(son.house)
 ```
 能打印出预期结果3
+
 
 
 ### 下一步：
