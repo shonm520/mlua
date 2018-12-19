@@ -76,8 +76,8 @@ end
 t = {name = 'shonm', 28, sex = 'male', game = {name = 'Glory of the king'}}
 
 t.func = function(str) 
-			print(str, t.name, 'age is ', t[1], 'sex is ', t.sex, 'he plays', t.game.name) 
-		end
+	    print(str, t.name, 'age is ', t[1], 'sex is ', t.sex, 'he plays', t.game.name) 
+	end
 t.func('hello')
 ```
 
@@ -85,7 +85,7 @@ t.func('hello')
 ```
 print(string.len('hello world'))
 print(string.upper('world'))
-print(math.pow(2, 6
+print(math.pow(2, 6))
 ```
 
 ### 元表的例子：
