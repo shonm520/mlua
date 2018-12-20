@@ -100,6 +100,32 @@ print(son.house)
 能打印出预期结果3
 
 
+### 面向对象多态特性
+```
+cat = {}
+function cat.call()
+	print('cat call maomao~~~')
+end
+
+dog = {}
+dog.call = function ()
+	print('dog call wangwang~~~')
+end
+
+function test_duck(duck)
+	duck.call()
+end
+
+test_duck(cat)
+test_duck(dog)
+```
+结果为：
+```
+cat call maomao~~~
+dog call wangwang~~~
+```
+
+
 
 ### 下一步：
 
