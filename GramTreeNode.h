@@ -50,7 +50,7 @@ public:
 		COMPARE_K,
 		OPERATION_K,
 		BOOL_K,
-		NAMELIST_K,    //ÉùÃ÷±äÁ¿
+		NAMELIST_K,    //å£°æ˜å˜é‡
 		ASSIGN_K,
 		SUBROUTINE_BODY_K,
 		BOOL_CONST_K,
@@ -82,8 +82,8 @@ protected:
 	SyntaxTreeNodeBase* _pParent;
 	SyntaxTreeNodeBase* _pNext;
 	NodeKind _nodeKind;
-	short    _childIndex;     //×ÓÀàµÄË÷Òı
-	short    _siblings;       //Í¬µÈ½ÚµãµÄ¸öÊı
+	short    _childIndex;     //å­ç±»çš„ç´¢å¼•
+	short    _siblings;       //åŒç­‰èŠ‚ç‚¹çš„ä¸ªæ•°
 
 	Scanner::Token _token;
 
@@ -115,7 +115,7 @@ public:
 
 	void setNextNode(SyntaxTreeNodeBase* node)  {
 		if (node)  {
-			node->_childIndex = _childIndex;   //ÕâÃ´Àí½â,¸¸Ç×ÓĞ¶à¸öÀÏÆÅ,Ã¿¸öÀÏÆÅÓĞ0µ½¶à¸ö¶ù×Ó,ÉúÄ¸ÊÇÍ¬Ò»¸öµÄº¢×Ó±àºÅÒ»Ñù
+			node->_childIndex = _childIndex;   //è¿™ä¹ˆç†è§£,çˆ¶äº²æœ‰å¤šä¸ªè€å©†,æ¯ä¸ªè€å©†æœ‰0åˆ°å¤šä¸ªå„¿å­,ç”Ÿæ¯æ˜¯åŒä¸€ä¸ªçš„å­©å­ç¼–å·ä¸€æ ·
 		}
 		_pNext = node;
 	}
@@ -128,7 +128,7 @@ public:
 	SyntaxTreeNodeBase* getParentNode()  {
 		return _pParent;
 	}
-	void setParentNode(SyntaxTreeNodeBase* node)  {   //Ò²Òª°ÑÇ×ĞÖµÜÖ¸¶¨¸¸Àà
+	void setParentNode(SyntaxTreeNodeBase* node)  {   //ä¹Ÿè¦æŠŠäº²å…„å¼ŸæŒ‡å®šçˆ¶ç±»
 		auto cur = this;
 		while (cur)  {
 			cur->_pParent = node;
@@ -176,7 +176,7 @@ public:
 	TreeNode* getCurNode()  {
 		return _cur;
 	}
-	TreeNode* joinBy(TreeNodeList* node2);   //ºÏ²¢,µÚ¶ş¸ö½ÓÉÏµÚÒ»¸ö,·µ»ØµÚÒ»¸öµÄÍ·
+	TreeNode* joinBy(TreeNodeList* node2);   //åˆå¹¶,ç¬¬äºŒä¸ªæ¥ä¸Šç¬¬ä¸€ä¸ª,è¿”å›ç¬¬ä¸€ä¸ªçš„å¤´
 	static TreeNode* getCurNode(TreeNode* node);
 };
 
@@ -206,6 +206,7 @@ class IdentifierNode : public SyntaxTreeNodeBase  {
 public:
 	IdentifierNode(Scanner::Token& t) : SyntaxTreeNodeBase()  {
 		_token = t;
+		_val = nullptr;
 	}
 	virtual ~IdentifierNode(){}
 
@@ -256,7 +257,7 @@ public:
 };
 
 	
-class VarDecNode : public SyntaxTreeNodeBase  {   //±äÁ¿ÉùÃ÷½Úµã
+class VarDecNode : public SyntaxTreeNodeBase  {   //å˜é‡å£°æ˜èŠ‚ç‚¹
 public:
 	VarDecNode() : SyntaxTreeNodeBase()  {
 		_nodeKind = VAR_DEC_K;
@@ -266,13 +267,13 @@ public:
 		VarDec_Name
 	};
 	virtual ~VarDecNode(){}
-	SyntaxTreeNodeBase* getVarDecType() { return _child[VarDecNode::VarDec_Type]; }    //±äÁ¿µÄÉùÃ÷
-	SyntaxTreeNodeBase* getVarDecName() { return _child[VarDecNode::VarDec_Name]; }    //±äÁ¿µÄÃû×Ö
+	SyntaxTreeNodeBase* getVarDecType() { return _child[VarDecNode::VarDec_Type]; }    //å˜é‡çš„å£°æ˜
+	SyntaxTreeNodeBase* getVarDecName() { return _child[VarDecNode::VarDec_Name]; }    //å˜é‡çš„åå­—
 
 };
 
 
-class ParamNode : public VarDecNode  {    //ĞÎ²Î½Úµã
+class ParamNode : public VarDecNode  {    //å½¢å‚èŠ‚ç‚¹
 public:
 	ParamNode() : VarDecNode()  {
 		_nodeKind = PARAM_K;
@@ -280,7 +281,7 @@ public:
 	virtual ~ParamNode(){}
 };
 
-class LocalNameListStatement : public SyntaxTreeNodeBase  {      //ÉùÃ÷Óï¾ä
+class LocalNameListStatement : public SyntaxTreeNodeBase  {      //å£°æ˜è¯­å¥
 public:
 	LocalNameListStatement() : SyntaxTreeNodeBase()  {
 		_nodeKind = NAMELIST_K;
@@ -338,7 +339,7 @@ public:
 	OperateType _opType;
 };
 
-class TableDefine : public SyntaxTreeNodeBase  {         //talbe½Úµã
+class TableDefine : public SyntaxTreeNodeBase  {         //talbeèŠ‚ç‚¹
 public:
 	TableDefine() : SyntaxTreeNodeBase()  {
 		_nodeKind = TABLE_DEFINE_K;
@@ -383,7 +384,7 @@ public:
 };
 
 
-//t = {1,2,[3]=3, d=5} 1,2ÊÇTableArrayFiled,[3]=7ÊÇTableIndexField,d=5ÊÇTableNameField
+//t = {1,2,[3]=3, d=5} 1,2æ˜¯TableArrayFiled,[3]=7æ˜¯TableIndexField,d=5æ˜¯TableNameField
 
 class TableIndexField : public SyntaxTreeNodeBase  {   
 public:
@@ -420,7 +421,7 @@ class NormalCallFunciton : public SyntaxTreeNodeBase  {
 public:
 	NormalCallFunciton() : SyntaxTreeNodeBase()  {
 		_nodeKind = FUNCTION_CALL_K;
-		_needRetNum = 1;      //Ò»°ãĞèÒªµÄ·µ»ØÖµÊÇ1¸ö
+		_needRetNum = 1;      //ä¸€èˆ¬éœ€è¦çš„è¿”å›å€¼æ˜¯1ä¸ª
 	}
 	virtual ~NormalCallFunciton(){}
 
@@ -429,7 +430,7 @@ public:
 
 	virtual void accept(Visitor* visitor, void* data);
 
-	int _needRetNum;   //ĞèÒª·µ»ØÖµµÄ¸öÊı
+	int _needRetNum;   //éœ€è¦è¿”å›å€¼çš„ä¸ªæ•°
 };
 
 
