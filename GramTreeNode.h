@@ -3,11 +3,13 @@
 #include <map>
 #include <stack>
 #include <vector>
+#include <list>
 #include <cassert>
 #include <string.h>
 using std::string;
 using std::stack;
 using std::vector;
+using std::list;
 
 #include "Scanner.h"
 #include "Value.h"
