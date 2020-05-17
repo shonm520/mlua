@@ -170,8 +170,6 @@ private:
 
 	bool HashTableHasKey(const Value *key) const;
 	bool ArrayHasKey(const Value *key) const;
-	void MarkArray();
-	void MarkHashTable();
 
 	ArrayType* _array;
 	HashTableType* _hash_table;

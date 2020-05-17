@@ -98,14 +98,14 @@ private:
 	int findInNestTables(Value* key, Value** val);
 private:
 	int _needRetNum;      //函数调用者需要的返回值个数，例如f()为0个，f() + 1 就为1个
-	int _actRetNum;      //函数执行时确定的返回值个数，这个也是动态的，比如在if语句中
-	int _actParamNum;    //函数执行时实际传入的参数个数
+	int _actRetNum;       //函数执行时确定的返回值个数，这个也是动态的，比如在if语句中
+	int _actParamNum;     //函数执行时实际传入的参数个数
 	State* _state;
 	Function* _prototype;
 	Closure* _parentClosure;
 
 	typedef std::vector<Table *> NestTables;
-	NestTables _nest_tables;
+	NestTables _nest_tables;     //一个函数中可能有多个嵌套block
 	Table* _upTables;
 };
 

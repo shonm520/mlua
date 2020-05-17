@@ -24,7 +24,7 @@ void BaseLib::PrintType(Value* val)
 			printf("%d", ((Number*)val)->GetInteger());
 		}
 		else  {
-			printf("%.14lg", ((Number*)val)->Get());     //ÕâÀï¿ÉÒÔËÄÉáÎåÈë£¬Ò²¿ÉÒÔÊ¡ÂÔºóÃæµÄ0£¬ÍêÃÀÊä³ö£¬×î¶àÊä³öºóÃæ14Î»Ð¡Êý
+			printf("%.14lg", ((Number*)val)->Get());     //è¿™é‡Œå¯ä»¥å››èˆäº”å…¥ï¼Œä¹Ÿå¯ä»¥çœç•¥åŽé¢çš„0ï¼Œå®Œç¾Žè¾“å‡ºï¼Œæœ€å¤šè¾“å‡ºåŽé¢14ä½å°æ•°
 		}
 	}
 	else if (val->Type() == Value::TYPE_NIL)  {

@@ -38,6 +38,20 @@ void VM::execute_frame()
 
 int VM::runCode(InstructionValue* insSetVal)
 {
+	//local a = 1  一条典型的初始化语句产生的指令有3条：OpCode_Push(1) OpCode_SetLocalVar (a)  OpCode_Assign (=)
+	//a = 1  一条典型的赋值语句产生的指令有3条：OpCode_Push(1) OpCode_SetLocalVar (a)  OpCode_InitLocalVar (=)
+	//一个函数声明语句也是3条指令：OpCode_GenerateClosure(1) OpCode_SetLocalVar (funcName)  OpCode_InitLocalVar (=)
+	//引用一个值的命令是OpCode_GetLocalVar，它会压入该变量的值(从闭包的table值中查找)到栈中
+	//函数返回几个值，就会压入几个值到栈中，OpCode_Ret指令只是告诉闭包返回值的个数
+	/*调用函数参数时，没有特别的指令，只是OpCode_GetLocalVar压入值到栈。执行有参数的函数时，首先就是OpCode_SetLocalVar压入参数名，
+	  然后就是OpCode_PassFunParam指令将参数名赋值为栈上的值
+	*/
+
+	//TODO
+	/*垃圾回收的基本思路就是：闭包退出时，遍历当前的table,看哪些不在栈上的就delete掉。但是这样有个问题，如果将一个变量传给一个函数，这样的话，闭包结束时，这个参数也会delete掉，
+	  所以加一条规则：则检测闭包中的变量是否在外层引用着。当然闭包内部引用到外层的变量是不会出现这个情况的，因为此时该值不会在当前闭包table中记录
+	*/
+	//看能不能简化OpCode_Push(1),OpCode_SetLocalVar(a),OpCode_Assign(=)为两条指令
 	insSetVal->setParent(_curInsVal);
 	_curInsVal = insSetVal;
 	auto vtIns = insSetVal->getInstructionSet()->toVtInstructions();
